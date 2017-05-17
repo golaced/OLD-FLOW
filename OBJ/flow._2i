@@ -1,0 +1,6 @@
+--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -W -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\FWLIB\inc -I ..\HARDWARE\DCMI -I ..\HARDWARE\KEY -I ..\HARDWARE\LCD -I ..\HARDWARE\LED -I ..\HARDWARE\OV5640 -I ..\HARDWARE\TIMER -I ..\HARDWARE\USART2 -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\USMART
+-I D:\·É¿Ø\OLDX_FC2.0\OLD-FLOW\USER\RTE
+-I d:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.9.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+-I d:\Keil_v5\ARM\CMSIS\Include
+-D__UVISION_VERSION="520" -DSTM32F407xx -DSTM32F40_41xxx -DUSE_STDPERIPH_DRIVER
+-o ..\obj\flow.o --omf_browse ..\obj\flow.crf --depend ..\obj\flow.d --feedback "..\OBJ\OV5640.fed" "..\HARDWARE\LED\flow.c"
