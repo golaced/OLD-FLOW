@@ -53,3 +53,4 @@
 ..\obj\main.o: ..\HARDWARE\USART2\jinclude.h
 ..\obj\main.o: ..\HARDWARE\LED\flow.h
 ..\obj\main.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+..\obj\main.o: ..\HARDWARE\TIMER\dma.h

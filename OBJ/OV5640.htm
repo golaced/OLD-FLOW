@@ -3,11 +3,11 @@
 <title>Static Call Graph - [..\OBJ\OV5640.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image ..\OBJ\OV5640.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Wed May 17 14:56:13 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Wed May 17 18:07:13 2017
 <BR><P>
-<H3>Maximum Stack Usage =      17524 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =      23864 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
-__rt_entry_main &rArr; main &rArr; rgb565_test &rArr; flow_task &rArr; compute_flow &rArr; compute_subpixel
+DCMI_IRQHandler &rArr; jpeg_data_process &rArr; read_xy_rgb
 <P>
 <H3>
 Functions with no stack information
@@ -248,7 +248,7 @@ Global Symbols
 <P><STRONG><a name="[13f]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[6e]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 17524 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 20580 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; rgb565_test &rArr; flow_task &rArr; compute_flow &rArr; compute_subpixel
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -565,8 +565,7 @@ Global Symbols
 <P><STRONG><a name="[7b]"></a>__aeabi_memcpy4</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, rt_memcpy_w.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __aeabi_memcpy4
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
-<LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_memcpy
+<BR>[Called By]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_memcpy
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jint_std_quant_tables
 </UL>
 
@@ -591,7 +590,8 @@ Global Symbols
 <P><STRONG><a name="[100]"></a>__aeabi_memclr4</STRONG> (Thumb, 0 bytes, Stack size 4 bytes, rt_memclr_w.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = __aeabi_memclr4
 </UL>
-<BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jpeg_create_compress
+<BR>[Called By]<UL><LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jpeg_data_process
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jpeg_create_compress
 </UL>
 
 <P><STRONG><a name="[149]"></a>__aeabi_memclr8</STRONG> (Thumb, 0 bytes, Stack size 4 bytes, rt_memclr_w.o(.text), UNUSED)
@@ -680,7 +680,7 @@ Global Symbols
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jpeg_finish_compress
 <LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jpeg_create_compress
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[89]"></a>Cycle_Time_Init</STRONG> (Thumb, 22 bytes, Stack size 4 bytes, delay.o(i.Cycle_Time_Init))
@@ -712,7 +712,7 @@ Global Symbols
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_GetCmdStatus
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[b7]"></a>DCMI_DeInit</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, stm32f4xx_dcmi.o(i.DCMI_DeInit))
@@ -724,7 +724,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[5a]"></a>DCMI_IRQHandler</STRONG> (Thumb, 50 bytes, Stack size 8 bytes, dcmi.o(i.DCMI_IRQHandler))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16440<LI>Call Chain = DCMI_IRQHandler &rArr; jpeg_data_process &rArr; read_xy_rgb
+<BR><BR>[Stack]<UL><LI>Max Depth = 23864<LI>Call Chain = DCMI_IRQHandler &rArr; jpeg_data_process &rArr; read_xy_rgb
 </UL>
 <BR>[Calls]<UL><LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DCMI_GetITStatus
 <LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DCMI_ClearITPendingBit
@@ -748,7 +748,7 @@ Global Symbols
 <LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_SetCursor
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_Cmd
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[98]"></a>DCMI_Stop</STRONG> (Thumb, 32 bytes, Stack size 8 bytes, dcmi.o(i.DCMI_Stop))
@@ -757,11 +757,11 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DCMI_CaptureCmd
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_Cmd
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[10d]"></a>DMA_ClearFlag</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, stm32f4xx_dma.o(i.DMA_ClearFlag))
-<BR><BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR><BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[96]"></a>DMA_Cmd</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, stm32f4xx_dma.o(i.DMA_Cmd))
@@ -790,7 +790,7 @@ Global Symbols
 <P><STRONG><a name="[10c]"></a>DMA_GetFlagStatus</STRONG> (Thumb, 54 bytes, Stack size 12 bytes, stm32f4xx_dma.o(i.DMA_GetFlagStatus))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = DMA_GetFlagStatus
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[8f]"></a>DMA_Init</STRONG> (Thumb, 82 bytes, Stack size 8 bytes, stm32f4xx_dma.o(i.DMA_Init))
@@ -844,7 +844,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[10a]"></a>GRAY_RGB</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, flow.o(i.GRAY_RGB))
-<BR><BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR><BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[8a]"></a>Get_Cycle_T</STRONG> (Thumb, 118 bytes, Stack size 4 bytes, delay.o(i.Get_Cycle_T))
@@ -853,13 +853,13 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;micros
 </UL>
 <BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Cycle_Time_Init
-<LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[4]"></a>HardFault_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.HardFault_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f40_41xxx.o(RESET)
 </UL>
-<P><STRONG><a name="[108]"></a>Initial_Timer5</STRONG> (Thumb, 66 bytes, Stack size 0 bytes, delay.o(i.Initial_Timer5))
+<P><STRONG><a name="[107]"></a>Initial_Timer5</STRONG> (Thumb, 66 bytes, Stack size 0 bytes, delay.o(i.Initial_Timer5))
 <BR><BR>[Called By]<UL><LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -896,7 +896,7 @@ Global Symbols
 <LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_WR_REG
 <LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_WR_DATA
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[a3]"></a>LCD_Init</STRONG> (Thumb, 14696 bytes, Stack size 136 bytes, lcd.o(i.LCD_Init))
@@ -1025,7 +1025,7 @@ Global Symbols
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_GetCmdStatus
 </UL>
-<BR>[Called By]<UL><LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[b3]"></a>MYDMA_Enable</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, dma.o(i.MYDMA_Enable))
@@ -1035,8 +1035,7 @@ Global Symbols
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_GetCmdStatus
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_Cmd
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
-<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[5]"></a>MemManage_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.MemManage_Handler))
@@ -1055,7 +1054,7 @@ Global Symbols
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_AHB1PeriphClockCmd
 <LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_Init
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[3]"></a>NMI_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.NMI_Handler))
@@ -1078,7 +1077,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[be]"></a>OV5640_Color_Saturation</STRONG> (Thumb, 120 bytes, Stack size 16 bytes, ov5640.o(i.OV5640_Color_Saturation))
@@ -1086,7 +1085,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[bf]"></a>OV5640_Contrast</STRONG> (Thumb, 120 bytes, Stack size 16 bytes, ov5640.o(i.OV5640_Contrast))
@@ -1094,7 +1093,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[c0]"></a>OV5640_Focus_Constant</STRONG> (Thumb, 124 bytes, Stack size 16 bytes, ov5640.o(i.OV5640_Focus_Constant))
@@ -1104,7 +1103,7 @@ Global Symbols
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 <LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_RD_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[c2]"></a>OV5640_Focus_Init</STRONG> (Thumb, 180 bytes, Stack size 16 bytes, ov5640.o(i.OV5640_Focus_Init))
@@ -1114,7 +1113,7 @@ Global Symbols
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 <LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_RD_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[c3]"></a>OV5640_Init</STRONG> (Thumb, 242 bytes, Stack size 24 bytes, ov5640.o(i.OV5640_Init))
@@ -1135,7 +1134,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[c6]"></a>OV5640_OutSize_Set</STRONG> (Thumb, 128 bytes, Stack size 24 bytes, ov5640.o(i.OV5640_OutSize_Set))
@@ -1143,7 +1142,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[c1]"></a>OV5640_RD_Reg</STRONG> (Thumb, 60 bytes, Stack size 16 bytes, ov5640.o(i.OV5640_RD_Reg))
@@ -1165,7 +1164,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[cd]"></a>OV5640_Sharpness</STRONG> (Thumb, 122 bytes, Stack size 8 bytes, ov5640.o(i.OV5640_Sharpness))
@@ -1173,7 +1172,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_WR_Reg
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[bd]"></a>OV5640_WR_Reg</STRONG> (Thumb, 60 bytes, Stack size 16 bytes, ov5640.o(i.OV5640_WR_Reg))
@@ -1237,7 +1236,7 @@ Global Symbols
 <P><STRONG><a name="[10b]"></a>RGB565TORGB24</STRONG> (Thumb, 74 bytes, Stack size 12 bytes, jpg_code.o(i.RGB565TORGB24))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = RGB565TORGB24
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[103]"></a>RGB_GRAY_16</STRONG> (Thumb, 66 bytes, Stack size 16 bytes, flow.o(i.RGB_GRAY_16))
@@ -1371,9 +1370,8 @@ Global Symbols
 <LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart_init
 </UL>
 
-<P><STRONG><a name="[107]"></a>USART_DMACmd</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, stm32f4xx_usart.o(i.USART_DMACmd))
-<BR><BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
-<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<P><STRONG><a name="[109]"></a>USART_DMACmd</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, stm32f4xx_usart.o(i.USART_DMACmd))
+<BR><BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[d6]"></a>USART_GetITStatus</STRONG> (Thumb, 84 bytes, Stack size 16 bytes, stm32f4xx_usart.o(i.USART_GetITStatus))
@@ -1429,7 +1427,7 @@ Global Symbols
 <P><STRONG><a name="[10e]"></a>data_per_uart1</STRONG> (Thumb, 1064 bytes, Stack size 36 bytes, usart.o(i.data_per_uart1))
 <BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = data_per_uart1
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[df]"></a>delay_init</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, delay.o(i.delay_init))
@@ -1478,7 +1476,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;compute_flow
 <LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 
 <P><STRONG><a name="[60]"></a>fputc</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, usart.o(i.fputc))
@@ -1669,8 +1667,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Compression
 </UL>
 
-<P><STRONG><a name="[91]"></a>jpeg_data_process</STRONG> (Thumb, 242 bytes, Stack size 16416 bytes, main.o(i.jpeg_data_process))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16432<LI>Call Chain = jpeg_data_process &rArr; read_xy_rgb
+<P><STRONG><a name="[91]"></a>jpeg_data_process</STRONG> (Thumb, 320 bytes, Stack size 23840 bytes, main.o(i.jpeg_data_process))
+<BR><BR>[Stack]<UL><LI>Max Depth = 23856<LI>Call Chain = jpeg_data_process &rArr; read_xy_rgb
 </UL>
 <BR>[Calls]<UL><LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_xy_rgb
 <LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RGB_GRAY_16
@@ -1678,6 +1676,7 @@ Global Symbols
 <LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_GetCurrDataCounter
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_GetCmdStatus
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DMA_Cmd
+<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 </UL>
 <BR>[Called By]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DCMI_IRQHandler
 </UL>
@@ -1748,26 +1747,23 @@ Global Symbols
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jint_add_quant_table
 </UL>
 
-<P><STRONG><a name="[6f]"></a>main</STRONG> (Thumb, 150 bytes, Stack size 16 bytes, main.o(i.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 17524 + Unknown Stack Size
+<P><STRONG><a name="[6f]"></a>main</STRONG> (Thumb, 104 bytes, Stack size 0 bytes, main.o(i.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20580 + Unknown Stack Size
 <LI>Call Chain = main &rArr; rgb565_test &rArr; flow_task &rArr; compute_flow &rArr; compute_subpixel
 </UL>
 <BR>[Calls]<UL><LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart_init2
 <LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart_init
 <LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_init
-<LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_DMACmd
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIM3_Int_Init
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_Init
 <LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;NVIC_PriorityGroupConfig
-<LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MYDMA_Enable
-<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MYDMA_Config
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_Init
 <LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Init
 <LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;KEY_Init
-<LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Initial_Timer5
+<LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Initial_Timer5
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Cycle_Time_Init
-<LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
 </UL>
@@ -1782,12 +1778,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jpeg_data_process
 </UL>
 
-<P><STRONG><a name="[109]"></a>rgb565_test</STRONG> (Thumb, 942 bytes, Stack size 16648 bytes, main.o(i.rgb565_test))
-<BR><BR>[Stack]<UL><LI>Max Depth = 17508<LI>Call Chain = rgb565_test &rArr; flow_task &rArr; compute_flow &rArr; compute_subpixel
+<P><STRONG><a name="[108]"></a>rgb565_test</STRONG> (Thumb, 812 bytes, Stack size 19720 bytes, main.o(i.rgb565_test))
+<BR><BR>[Stack]<UL><LI>Max Depth = 20580<LI>Call Chain = rgb565_test &rArr; flow_task &rArr; compute_flow &rArr; compute_subpixel
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;flow_task
 <LI><a href="#[10e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;data_per_uart1
-<LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_DMACmd
+<LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_DMACmd
 <LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RGB565TORGB24
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_Sharpness
 <LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_RGB565_Mode
@@ -1800,6 +1796,7 @@ Global Symbols
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OV5640_Brightness
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;My_DCMI_Init
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MYDMA_Enable
+<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MYDMA_Config
 <LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_Fast_DrawPoint
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Get_Cycle_T
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GRAY_RGB
@@ -1811,7 +1808,6 @@ Global Symbols
 <LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Compression
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
 <LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2iz
-<LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy4
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1861,7 +1857,7 @@ Global Symbols
 <P><STRONG><a name="[ee]"></a>__aeabi_d2iz</STRONG> (Thumb, 0 bytes, Stack size 32 bytes, dfix.o(x$fpl$dfix))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = __aeabi_d2iz
 </UL>
-<BR>[Called By]<UL><LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<BR>[Called By]<UL><LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 <LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jint_process_mcu
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;jint_add_quant_table
 </UL>
@@ -1892,7 +1888,7 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = __aeabi_dmul
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LCD_SSD_BackLightSet
-<LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
+<LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rgb565_test
 <LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;compute_flow
 </UL>
 

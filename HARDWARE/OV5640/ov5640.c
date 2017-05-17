@@ -142,9 +142,9 @@ void OV5640_RGB565_Mode(void)
 {
 	u16 i=0;
 	//设置:RGB565输出
-	for(i=0;i<(sizeof(ov5640_rgb565_reg_tbl60)/4);i++)
+	for(i=0;i<(sizeof(ov5640_rgb565_reg_tbl)/4);i++)
 	{
-		OV5640_WR_Reg(ov5640_rgb565_reg_tbl60[i][0],ov5640_rgb565_reg_tbl60[i][1]); 
+		OV5640_WR_Reg(ov5640_rgb565_reg_tbl[i][0],ov5640_rgb565_reg_tbl[i][1]); 
 	} 
 } 
 //EV曝光补偿设置参数表，支持7个等级

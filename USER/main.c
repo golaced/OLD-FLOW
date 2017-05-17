@@ -11,17 +11,15 @@
 #include "dcmi.h" 
 #include "jcapi.h"	
 #include "flow.h"	
-
-#define Frame_size 2
-float  SCALE=1;
-#define W 64*Frame_size
-#define H W//120
+#include "dma.h"	
+#define Frame_size 2.2
+#define W (int)(64*Frame_size)
+#define H W
 #define FULL_IMAGE_SIZE (H*W)
 #define jpeg_buf_size H*W/2  			//定义JPEG数据缓存jpeg_buf的大小(*4字节)
-#define RGB_size H*W/2 
-float scale_x=0.2,scale_y=0.2;
+#define RGB_size jpeg_buf_size
 u8 flow_q;
-float jpg_q=0.66;
+float jpg_q=0.1;
 u8 en_lcd=0;
 u8 en_flow=1;
 u8 en_jpg=0;
@@ -61,11 +59,13 @@ const u8*EFFECTS_TBL[7]={"Normal","Cool","Warm","B&W","Yellowish ","Inverse","Gr
 const u8*JPEG_SIZE_TBL[12]={"QQVGA","QVGA","VGA","SVGA","XGA","WXGA","WXGA+","SXGA","UXGA","1080P","QXGA","500W"};//JPEG图片
 
 u8 get_one;
+u16 off_pix1=0;
 //处理JPEG数据
 //当采集完一帧JPEG数据后,调用此函数,切换JPEG BUF.开始下一帧采集.
 void jpeg_data_process(void)
 {u16 x,y,color,i,j,k,l;
   volatile	uint8_t image_buffer_8bit_now[FULL_IMAGE_SIZE];	
+	volatile  uint8_t image_buffer_8bit_2_t[64*64]={0};	
 	if(!ovx_mode)//只有在RGB
 	{
 	 if(jpeg_data_ok==0)	//jpeg数据还未采集完?
@@ -75,6 +75,7 @@ void jpeg_data_process(void)
 			jpeg_data_len=RGB_size-DMA_GetCurrDataCounter(DMA2_Stream1);//得到此次数据传输的长度
 			
 		jpeg_data_ok=1; 				//标记JPEG数据采集完按成,等待其他函数处理
+		if(!get_one||1){		
 		x=y=j=i=k=l=0;
 		for(x=0;x<W;x++)
 		for(y=0;y<H;y++){							
@@ -82,22 +83,29 @@ void jpeg_data_process(void)
 		}
 		
 		x=y=j=i=k=l=0;
-  	for(x=H/2-32;x<64+H/2-32;x++)
-		 for(y=W/2-32;y<64+W/2-32;y++)	
-			image_buffer_8bit_2[k++]=image_buffer_8bit_now[(x)*H+(y)];
-							
-		
-		
-//		 if(en_jpg){
-//				for(i=0;i<64*64;i++){//IWDG_Feed();			
-//				RGB565TORGB24(i,GRAY_RGB(image_buffer_8bit_2[i]));
+  	for(x=W/2-32;x<64+W/2-32;x++)
+		 for(y=H/2-32;y<64+H/2-32;y++)	
+			image_buffer_8bit_2_t[k++]=image_buffer_8bit_now[(x)*W+(y)];
+	  
+		x=y=j=i=k=l=0;	
+    		
+	  for(i=0;i<64*64;i++)
+			 image_buffer_8bit_2[i]=image_buffer_8bit_2_t[i];
+   	}
+//	 for(x=0;x<64-off_pix1;x++)
+//		 for(y=0;y<64;y++)	
+//				{image_buffer_8bit_2[k]=image_buffer_8bit_2_t[LIMIT((x+off_pix1)*64+y,0,64*64-1)];
+//					if(k<64*64-2)
+//						k++;
 //				}
-// 		   Compression(64,64,jpg_q);//压缩 
-//				u8 *p=(u8*)JPG_enc_buf;
-//					for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
-//						UsartSend_GOL_LINK(p[i]); 	
-//				}
-		 
+				
+//	 for(x=off_pix1;x<64;x++)
+//		 for(y=0;y<64;y++)	
+//			{image_buffer_8bit_2[k]=image_buffer_8bit_2_t[LIMIT((x-off_pix1)*64+y,0,64*64-1)];	
+//    	if(k<64*64-2)
+//						k++;
+//			}
+				
 		get_one=1;	
 		jpeg_data_ok=2;
 		}
@@ -109,39 +117,6 @@ void jpeg_data_process(void)
 			jpeg_data_ok=0;						//标记数据未采集
 		}
 	}
-} 
-//JPEG测试
-//JPEG数据,通过串口2发送给电脑.
-void jpeg_test(void)
-{
-	u32 i,jpgstart,jpglen; 
-	u8 *p;
-	u8 key,headok=0;
-	u8 effect=0,contrast=2;
-	u8 size=2;			//默认是QVGA 640*480尺寸
-	u8 msgbuf[15];		//消息缓存区 
-	
- 	//自动对焦初始化
-	OV5640_RGB565_Mode();	//RGB565模式 
-	OV5640_Focus_Init(); 
-	
- 	OV5640_JPEG_Mode();		//JPEG模式
-	
-	OV5640_Light_Mode(0);	//自动模式
-	OV5640_Color_Saturation(3);//色彩饱和度0
-	OV5640_Brightness(4);	//亮度0
-	OV5640_Contrast(3);		//对比度0
-	OV5640_Sharpness(33);	//自动锐度
-	OV5640_Focus_Constant();//启动持续对焦
-	
-	My_DCMI_Init();			//DCMI配置
-	DCMI_DMA_Init((u32)&jpeg_buf,jpeg_buf_size,DMA_MemoryDataSize_Word,DMA_MemoryInc_Enable);//DCMI DMA配置   
-	OV5640_OutSize_Set(4,0,jpeg_img_size_tbl[size][0],jpeg_img_size_tbl[size][1]);//设置输出尺寸 
-	DCMI_Start(); 		//启动传输
-	while(1)
-	{
-				
-	}     
 } 
 
 //RGB565测试
@@ -170,9 +145,12 @@ void rgb565_test(void)
 	My_DCMI_Init();			//DCMI配置
 	DCMI_DMA_Init((u32)&jpeg_buf,jpeg_buf_size,DMA_MemoryDataSize_Word,DMA_MemoryInc_Enable);//DCMI DMA配置  
  	//OV5640_ImageWin_Set(4,0,64,64);				//全尺寸缩放
-	OV5640_OutSize_Set(4,0,W*SCALE,H*SCALE);
-	
+	OV5640_OutSize_Set(0,0,W,H);
+	//OV5640_Test_Pattern(2);
 	DCMI_Start(); 		//启动传输
+	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)SendBuff2,SEND_BUF_SIZE2+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
+	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);       
+	MYDMA_Enable(DMA1_Stream6,SEND_BUF_SIZE2+2);   
 while(1)
 	{ 
 		
@@ -180,16 +158,16 @@ while(1)
 		{  
 	  x=y=j=i=k=l=0;
 				for(k=0;k<22;k++)
-				 fig_view[k]=image_buffer_8bit_2[k+W*H/2-22];	
+				 fig_view[k]=image_buffer_8bit_2[k];	
 //show origin fig on lcd					
 x=y=j=i=k=l=0;	
 if(!en_flow&&en_lcd){							
 			for(x=0;x<H;x++)
 			  for(y=0;y<W;y++)	{	
-						  for(cow=0;cow<=lcddev.width/W*scale_x;cow++){
-								  for(row=0;row<=lcddev.height/H*scale_y;row++)	
-								LCD_Fast_DrawPoint(offsetx+y*lcddev.width/W*scale_x+cow,
-								offsety+x*lcddev.height/H*scale_y+row,GRAY_RGB(image_buffer_8bit_now[k]));
+						  for(cow=0;cow<=lcddev.width/W*1;cow++){
+								  for(row=0;row<=lcddev.height/H*1;row++)	
+								LCD_Fast_DrawPoint(offsetx+y*lcddev.width/W*1+cow,
+								offsety+x*lcddev.height/H*1+row,GRAY_RGB(image_buffer_8bit_now[k]));
 							}	
 				k++;}
 			}
@@ -208,23 +186,23 @@ t_flow = Get_Cycle_T(0)/1000000.0f;								//???????????
 static u8 cnt_show[3];							
 x=y=j=i=k=l=0;	
 			static u8 cnt_flow;
-	    if(en_flow)
-			{ 		
-				flow_q=flow_task(image_buffer_8bit_2, image_buffer_8bit_1,0);
+	    if(en_flow&&cnt_flow++>0)
+			{ cnt_flow=0;		
+				flow_q=flow_task(image_buffer_8bit_2, image_buffer_8bit_1,t_flow);
 			}	
 			
-			memcpy( image_buffer_8bit_1,image_buffer_8bit_2,64*64);			
+			for(i=0;i<64*64;i++)
+			 image_buffer_8bit_1[i]=image_buffer_8bit_2[i];
 			
-//upload flow fig in jpg				
+//upload flow fig in jpg	
+ static u16 cnt_up_fig;			
+			
 		  if(en_jpg){
 				DCMI_Stop(); 		//启动传输
 				for(i=0;i<64*64;i++){//IWDG_Feed();			
-				RGB565TORGB24(i,GRAY_RGB(image_buffer_8bit_2[i]));
+				RGB565TORGB24(i,GRAY_RGB(image_buffer_8bit_1[i]));
 				}
- 		   Compression(64,64,jpg_q);//压缩 
-//				p=(u8*)JPG_enc_buf;
-//					for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
-//						UsartSend_GOL_LINK(p[i]); 	
+ 		    Compression(64,64,jpg_q);//压缩 
 				DCMI_Start(); 		//启动传输
 				}
 //		   	if(DMA_GetFlagStatus(DMA2_Stream7,DMA_FLAG_TCIF7)!=RESET)//??DMA2_Steam7????
@@ -237,20 +215,22 @@ x=y=j=i=k=l=0;
 //							USART_DMACmd(USART1,USART_DMAReq_Tx,ENABLE);  //????1?DMA??     
 //							MYDMA_Enable(DMA2_Stream7,SendBuff1_cnt+2);     //????DMA??!	  
 //							}	
+				
 					if(DMA_GetFlagStatus(DMA1_Stream6,DMA_FLAG_TCIF6)!=RESET)//??DMA2_Steam7????
 								{ 
 							DMA_ClearFlag(DMA1_Stream6,DMA_FLAG_TCIF6);//??DMA2_Steam7??????		
 									SendBuff2_cnt=0;	
-														if(!en_jpg)
+								
+									if(en_jpg){cnt_up_fig=0;
+								p=(u8*)JPG_enc_buf;
+								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
+								SendBuff2[SendBuff2_cnt++]=p[i];
+						  	}else{
 							   data_per_uart1(0,0,0,
 															 0,pixel_flow_x*100,0,
 															 0,pixel_flow_y*100,0,
-							0,0,0,0,0,0,0);
-														else{
-								p=(u8*)JPG_enc_buf;
-								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
-								SendBuff2[SendBuff2_cnt++]=p[i];}
-														
+						    	0,0,0,0,0,0,0);			
+								}									
 					    USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);  //????1?DMA??     
 							MYDMA_Enable(DMA1_Stream6,SendBuff2_cnt+2);     //????DMA??!	
 								}
@@ -277,9 +257,7 @@ int main(void)
 //	MYDMA_Config(DMA2_Stream7,DMA_Channel_4,(u32)&USART1->DR,(u32)SendBuff1,SEND_BUF_SIZE1+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
 //	USART_DMACmd(USART1,USART_DMAReq_Tx,ENABLE);     
 //	MYDMA_Enable(DMA2_Stream7,SEND_BUF_SIZE1+2);  
-	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)SendBuff2,SEND_BUF_SIZE2+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
-	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);       
-	MYDMA_Enable(DMA1_Stream6,SEND_BUF_SIZE2+2);     	
+  	
    
 	LED_Init();					//初始化LED 
 	if(en_lcd)

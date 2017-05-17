@@ -56,13 +56,13 @@ unsigned short read_xy_rgb(u32 *jpeg_buf_i, unsigned int x,unsigned int y,int W)
 	u16 i,j,k,l;
 	unsigned int yt;
 if(y<=W-off_pix){
-	if((y)%2==0)
+	if((y)%2!=0)
 			temp=jpeg_buf_i[(x)*W/2+(-off_pix+y)/2]>>16;
 	else
 			temp=jpeg_buf_i[(x)*W/2+(-off_pix+y)/2];
 }
 else{
-		if((y)%2==0)
+		if((y)%2!=0)
 			temp=jpeg_buf_i[(x)*W/2+(W-off_pix+y)/2]>>16;
 	else
 			temp=jpeg_buf_i[(x)*W/2+(W-off_pix+y)/2];
