@@ -12,10 +12,10 @@
 #define SDA_read      ANO_GPIO_I2C->IDR  & I2C_Pin_SDA
 
 /***************I2C GPIO定义******************/
-#define ANO_GPIO_I2C	GPIOC
-#define I2C_Pin_SCL		GPIO_Pin_4
-#define I2C_Pin_SDA		GPIO_Pin_5
-#define ANO_RCC_I2C		RCC_AHB1Periph_GPIOC
+#define ANO_GPIO_I2C	GPIOB
+#define I2C_Pin_SCL		GPIO_Pin_10
+#define I2C_Pin_SDA		GPIO_Pin_11
+#define ANO_RCC_I2C		RCC_AHB1Periph_GPIOB
 /*********************************************/
 extern volatile u8 I2C_FastMode;
 

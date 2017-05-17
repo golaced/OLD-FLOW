@@ -41,3 +41,5 @@
 ..\obj\ak8975.o: ..\HARDWARE\LED\iic_hml.h
 ..\obj\ak8975.o: ..\HARDWARE\LED\i2c_soft.h
 ..\obj\ak8975.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+..\obj\ak8975.o: ..\HARDWARE\LED\filter.h
+..\obj\ak8975.o: ..\SYSTEM\delay\delay.h

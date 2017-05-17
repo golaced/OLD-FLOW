@@ -10,14 +10,14 @@
 #define PBout(n)   BIT_ADDR(GPIOB_ODR_Addr,n)  //输出 
 #define PBin(n)    BIT_ADDR(GPIOB_IDR_Addr,n)  //输入 
    	   		   
-#define SDA_IN()  {GPIOC->MODER&=~(3<<(5*2));GPIOC->MODER|=0<<5*2;}	//PB9输入模式
-#define SDA_OUT() {GPIOC->MODER&=~(3<<(5*2));GPIOC->MODER|=1<<5*2;} //PB9输出模式
+#define SDA_IN()  {GPIOB->MODER&=~(3<<(11*2));GPIOB->MODER|=0<<11*2;}	//PB9输入模式
+#define SDA_OUT() {GPIOB->MODER&=~(3<<(11*2));GPIOB->MODER|=1<<11*2;} //PB9输出模式
 
 
 //IO操作函数	 
-#define IIC_SCL    PCout(4) //SCL
-#define IIC_SDA    PCout(5) //SDA	 
-#define READ_SDA   PCin(5)  //输入SDA 
+#define IIC_SCL    PBout(10) //SCL
+#define IIC_SDA    PBout(11) //SDA	 
+#define READ_SDA   PBin(11)  //输入SDA 
 
 //IIC所有操作函数
 void IIC_Init(void);                //初始化IIC的IO口				 

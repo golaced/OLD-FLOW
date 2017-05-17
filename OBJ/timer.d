@@ -39,3 +39,15 @@
 ..\obj\timer.o: ..\HARDWARE\LED\led.h
 ..\obj\timer.o: ..\SYSTEM\usart\usart.h
 ..\obj\timer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+..\obj\timer.o: ..\HARDWARE\LED\mpu6050.h
+..\obj\timer.o: ..\SYSTEM\delay\delay.h
+..\obj\timer.o: ..\HARDWARE\LED\imu.h
+..\obj\timer.o: ..\HARDWARE\LED\mymath.h
+..\obj\timer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+..\obj\timer.o: ..\HARDWARE\LED\ak8975.h
+..\obj\timer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+..\obj\timer.o: ..\HARDWARE\LED\ultrasonic.h
+..\obj\timer.o: ..\HARDWARE\LED\ms5611.h
+..\obj\timer.o: ..\HARDWARE\LED\i2c_soft.h
+..\obj\timer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+..\obj\timer.o: ..\HARDWARE\LED\bmp.h

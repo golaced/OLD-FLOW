@@ -54,3 +54,14 @@
 ..\obj\main.o: ..\HARDWARE\LED\flow.h
 ..\obj\main.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 ..\obj\main.o: ..\HARDWARE\TIMER\dma.h
+..\obj\main.o: ..\HARDWARE\LED\mpu6050.h
+..\obj\main.o: ..\HARDWARE\LED\i2c_soft.h
+..\obj\main.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+..\obj\main.o: ..\HARDWARE\LED\ms5611.h
+..\obj\main.o: ..\HARDWARE\LED\ak8975.h
+..\obj\main.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+..\obj\main.o: ..\HARDWARE\LED\ultrasonic.h
+..\obj\main.o: ..\HARDWARE\LED\bmp.h
+..\obj\main.o: ..\HARDWARE\LED\imu.h
+..\obj\main.o: ..\HARDWARE\LED\mymath.h
+..\obj\main.o: ..\HARDWARE\LED\flash_w25.h

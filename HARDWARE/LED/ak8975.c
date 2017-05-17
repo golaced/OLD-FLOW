@@ -4,6 +4,7 @@
 #include "iic_hml.h"
 #include "i2c_soft.h"
 #include "filter.h"
+#include "delay.h"
 ak8975_t ak8975 = { {0,0,0},{124,-449,369},{1,0.532,0.486},{0,0,0} };
 ak8975_t ak8975_fc = { {0,0,0},{232,-221,-119},{1.17,1.339,1},{0,0,0} };
 
@@ -194,7 +195,7 @@ void HMC58X3_FIFO_init(void)
   unsigned char i;
   for(i=0;i<50;i++){
   HMC58X3_getRaw(&temp[0],&temp[1],&temp[2]);
-  Delay_us(200);  //延时再读取数据
+  delay_us(200);  //延时再读取数据
 
   }
 }
@@ -324,7 +325,7 @@ void HMC58X3_setMode(unsigned char mode) {
     return;
   }
   HMC58X3_writeReg(HMC58X3_R_MODE, mode);
-  Delay_us(100);
+  delay_us(100);
 }
 
 /**************************实现函数********************************************

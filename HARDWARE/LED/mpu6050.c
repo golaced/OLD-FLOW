@@ -198,21 +198,21 @@ void MPU6050_Init(u16 lpf)
 //	IIC_Write_1Byte(MPU6050_ADDR,MPU6050_RA_PWR_MGMT_1, 0x80);
 
     MPU6050_setSleepEnabled(0); //进入工作状态
-    Delay_ms(10);
+    delay_ms(10);
     MPU6050_setClockSource(MPU6050_CLOCK_PLL_ZGYRO); //设置时钟  0x6b   0x03
-    Delay_ms(10);
+    delay_ms(10);
     MPU6050_set_SMPLRT_DIV(1000);  //1000hz
-    Delay_ms(10);
+    delay_ms(10);
     MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);//陀螺仪最大量程 +-2000度每秒
-    Delay_ms(10);
+    delay_ms(10);
     MPU6050_setFullScaleAccelRange(MPU6050_ACCEL_FS_8);	//加速度度最大量程 +-8G
-    Delay_ms(10);
+    delay_ms(10);
     MPU6050_setDLPF(default_filter);  //42hz
-    Delay_ms(10);
+    delay_ms(10);
     MPU6050_setI2CMasterModeEnabled(0);	 //不让MPU6050 控制AUXI2C
-    Delay_ms(10);
+    delay_ms(10);
     MPU6050_setI2CBypassEnabled(1);	 //主控制器的I2C与	MPU6050的AUXI2C	直通。控制器可以直接访问HMC5883L
-    Delay_ms(10);
+    delay_ms(10);
 		
 	
 }

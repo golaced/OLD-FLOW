@@ -274,6 +274,71 @@ BLE_DEBUG[15]=IMUpersec;
 
 	SendBuff2[SendBuff2_cnt++]=(temp%256);
 	SendBuff2[SendBuff2_cnt++]=(0xaa);
+	
+	temp=0xaF+2+2;
+
+	SendBuff2[SendBuff2_cnt++]=(0xa5);
+	SendBuff2[SendBuff2_cnt++]=(0x5a);
+	SendBuff2[SendBuff2_cnt++]=(14+4);
+	SendBuff2[SendBuff2_cnt++]=(0xA1);
+
+	if(yaw<0)yaw=32768-yaw;
+	ctemp=yaw>>8;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+	ctemp=yaw;							
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+
+	if(pitch<0)pitch=32768-pitch;
+	ctemp=pitch>>8;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+	ctemp=pitch;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+								 
+	if(roll<0)roll=32768-roll;
+	ctemp=roll>>8;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+	ctemp=roll;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+
+	if(alt<0)alt=32768-alt;
+	ctemp=alt>>8;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;				
+	ctemp=alt;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+
+	if(tempr<0)tempr=32768-tempr;
+	ctemp=tempr>>8;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+	ctemp=tempr;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);	   
+	temp+=ctemp;
+
+	if(press<0)press=32768-press;
+	ctemp=press>>8;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+	ctemp=press;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+
+	ctemp=IMUpersec>>8;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+	ctemp=IMUpersec;
+	SendBuff2[SendBuff2_cnt++]=(ctemp);
+	temp+=ctemp;
+
+	SendBuff2[SendBuff2_cnt++]=(temp%256);
+	SendBuff2[SendBuff2_cnt++]=(0xaa);
 }
 
  	

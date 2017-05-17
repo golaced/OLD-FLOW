@@ -12,7 +12,18 @@
 #include "jcapi.h"	
 #include "flow.h"	
 #include "dma.h"	
-#define Frame_size 2.2
+
+
+#include "mpu6050.h"
+#include "i2c_soft.h"
+#include "ms5611.h"
+#include "ak8975.h"
+#include "ultrasonic.h"
+#include "bmp.h"
+#include "imu.h"
+#include "flash_w25.h" 
+
+#define Frame_size 2
 #define W (int)(64*Frame_size)
 #define H W
 #define FULL_IMAGE_SIZE (H*W)
@@ -75,7 +86,7 @@ void jpeg_data_process(void)
 			jpeg_data_len=RGB_size-DMA_GetCurrDataCounter(DMA2_Stream1);//得到此次数据传输的长度
 			
 		jpeg_data_ok=1; 				//标记JPEG数据采集完按成,等待其他函数处理
-		if(!get_one||1){		
+		if(!get_one||0){		
 		x=y=j=i=k=l=0;
 		for(x=0;x<W;x++)
 		for(y=0;y<H;y++){							
@@ -118,7 +129,17 @@ void jpeg_data_process(void)
 		}
 	}
 } 
-
+float gh=0.05;
+float ga=0.1;
+float gwa=0.1;
+double X_KF_NAV[2][3];
+double P_KF_NAV[2][9];
+float ga_nav= 0.1; 
+float gwa_nav=0.1;
+float g_pos_flow= 0.0086;//0.0051;
+float g_spd_flow= 0.0006;
+float K_spd_flow=0.87;
+u8 en_imu=1;
 //RGB565测试
 //RGB数据直接显示在LCD上面
 u8 fig_view[22]={0};
@@ -194,6 +215,45 @@ x=y=j=i=k=l=0;
 			for(i=0;i<64*64;i++)
 			 image_buffer_8bit_1[i]=image_buffer_8bit_2[i];
 			
+static float acc_flt[3]={0};
+		if(en_imu){
+		IMUupdate(0.5f *t_flow,mpu6050_fc.Gyro_deg.x, mpu6050_fc.Gyro_deg.y, mpu6050_fc.Gyro_deg.z, mpu6050_fc.Acc.x, mpu6050_fc.Acc.y, mpu6050_fc.Acc.z	,&Rol_fc,&Pit_fc,&Yaw_fc);	
+		bmp_rx=1;
+		MS5611_ThreadNew();		
+		bmp_rx=0;
+		//		static float wz_acc ;	 
+		//			
+		float acc_temp1=(float)(reference_vr_imd_down_fc[2] *mpu6050_fc.Acc.z + reference_vr_imd_down_fc[0] *mpu6050_fc.Acc.x + reference_vr_imd_down_fc[1] *mpu6050_fc.Acc.y - 4096  )/4096.0f*9.8;
+
+		acc_flt[2] = ( 1 / ( 1 + 1 / ( 20 *3.14f *t_flow ) ) )*( (acc_temp1 - acc_flt[2] ));	
+		double Z_kf[3]={MS5611_Altitude,0,0};
+		kf_oldx( X_kf_baro,  P_kf_baro,  Z_kf,  acc_flt[2] , gh,  0.1,  0.1,t_flow);
+
+		float a_br[3]={0};	
+		float acc_temp[3]={0};
+
+		a_br[0] =(float) mpu6050_fc.Acc.x/4096.*9.8;//16438.;
+		a_br[1] =(float) mpu6050_fc.Acc.y/4096.*9.8;//16438.;
+		a_br[2] =(float) mpu6050_fc.Acc.z/4096.*9.8;//16438.;
+		// acc
+		acc_temp[0] = a_br[1]*reference_vr_imd_down_fc[2]  - a_br[2]*reference_vr_imd_down_fc[1] ;
+		acc_temp[1] = a_br[2]*reference_vr_imd_down_fc[0]  - a_br[0]*reference_vr_imd_down_fc[2] ;
+		acc_flt[0] += ( 1 / ( 1 + 1 / ( 15 *3.14f *t_flow ) ) ) *( acc_temp[0] - acc_flt[0] );
+		acc_flt[1] += ( 1 / ( 1 + 1 / ( 15 *3.14f *t_flow ) ) ) *( acc_temp[1] - acc_flt[1] );
+		float T=t_flow;
+		double A[9]={1,       0,    0,T,       1,    0,-T*T/2, -T,    1};
+		double B[3]={T*T/2,T,0}; 
+		double H1[9]={0,0,0,0,1,0,0,0,0}; 	
+		float flowx,flowy;
+		float Sdpx=flowx*K_spd_flow;
+		float Accx=acc_flt[0];
+		double Zx[3]={0,Sdpx,0};
+		KF_OLDX_NAV( X_KF_NAV[0],  P_KF_NAV[0],  Zx,  Accx, A,  B,  H1,  ga_nav,  gwa_nav, g_pos_flow,  g_spd_flow,  T);
+		float Sdpy=flowy*K_spd_flow;
+		float Accy=acc_flt[1];
+		double Zy[3]={0,Sdpy,0};
+		KF_OLDX_NAV( X_KF_NAV[1],  P_KF_NAV[1],  Zy,  Accy, A,  B,  H1,  ga_nav,  gwa_nav, g_pos_flow,  g_spd_flow,  T);	
+		}else bmp_rx=0;
 //upload flow fig in jpg	
  static u16 cnt_up_fig;			
 			
@@ -226,10 +286,10 @@ x=y=j=i=k=l=0;
 								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
 								SendBuff2[SendBuff2_cnt++]=p[i];
 						  	}else{
-							   data_per_uart1(0,0,0,
+							   data_per_uart1(acc_flt[0]*100,acc_flt[1]*100,acc_flt[2]*100,
 															 0,pixel_flow_x*100,0,
 															 0,pixel_flow_y*100,0,
-						    	0,0,0,0,0,0,0);			
+						    	Yaw_fc*10,Pit_fc*10,Rol_fc*10,0,0,0,0);			
 								}									
 					    USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);  //????1?DMA??     
 							MYDMA_Enable(DMA1_Stream6,SendBuff2_cnt+2);     //????DMA??!	
@@ -257,13 +317,22 @@ int main(void)
 //	MYDMA_Config(DMA2_Stream7,DMA_Channel_4,(u32)&USART1->DR,(u32)SendBuff1,SEND_BUF_SIZE1+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
 //	USART_DMACmd(USART1,USART_DMAReq_Tx,ENABLE);     
 //	MYDMA_Enable(DMA2_Stream7,SEND_BUF_SIZE1+2);  
-  	
-   
+  I2c_Soft_Init();					//?????I2C
+	MPU6050_Init(20);   			//???????????,??20hz??
+	HMC5883L_SetUp();
+	MS5611_Init_FC();
+	W25QXX_Init();			//W25QXX初始化
+	while(W25QXX_ReadID()!=W25Q32&&W25QXX_ReadID()!=W25Q16)								//检测不到W25Q128
+	{	
+		delay_ms(200);
+		LED1=!LED1;
+	}
+  READ_PARM(); 
 	LED_Init();					//初始化LED 
 	if(en_lcd)
  	LCD_Init();					//LCD初始化  
  	KEY_Init();					//按键初始化 
-	TIM3_Int_Init(10000-1,8400-1);//10Khz计数,1秒钟中断一次
+	TIM3_Int_Init(100-1,8400-1);//10Khz计数,1秒钟中断一次
 	Initial_Timer5();
 	Cycle_Time_Init();
 	while(OV5640_Init())//初始化OV2640
@@ -271,6 +340,7 @@ int main(void)
 		delay_ms(200);
 		LED0=!LED0;
 	}	
+
 	  rgb565_test(); 	
 		
 }

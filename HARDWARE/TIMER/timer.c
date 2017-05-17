@@ -48,17 +48,42 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 	NVIC_Init(&NVIC_InitStructure);
 	
 }
-
+#include "mpu6050.h"
+#include "delay.h"
+#include "imu.h"
+#include "ak8975.h"
+#include "ultrasonic.h"
+#include "bmp.h"
 //定时器3中断服务函数
 u8 ov_frame_rx;
+
+double P_kf_baro[9]={1,0,0,1,0,0,1,0,0}; 
+double X_kf_baro[3];
+float t_mems;
+u8 bmp_rx;
 void TIM3_IRQHandler(void)
-{
+{static u8 cnt_1s,cnt_20ms;
 	if(TIM_GetITStatus(TIM3,TIM_IT_Update)==SET) //溢出中断
-	{
-		//printf("frame:%d\r\n",ov_frame);//打印帧率
-		//printf("jpeg_data_len:%d\r\n",jpeg_data_len);//打印帧率
+	{ if(cnt_1s++>100){cnt_1s=0;
 		ov_frame_rx=ov_frame;
 		ov_frame=0;
+	  }
+
+		float t_mems = Get_Cycle_T(2)/1000000.0f;								//???????????				
+		if(!bmp_rx){
+		MPU6050_Read(); 															//??mpu6????
+		MPU6050_Data_Prepare( t_mems );			//mpu6????????	
+		}
+//		IMUupdate(0.5f *t_mems,mpu6050_fc.Gyro_deg.x, mpu6050_fc.Gyro_deg.y, mpu6050_fc.Gyro_deg.z, mpu6050_fc.Acc.x, mpu6050_fc.Acc.y, mpu6050_fc.Acc.z	,&Rol_fc,&Pit_fc,&Yaw_fc);	
+ //		MS5611_ThreadNew();		
+//		static float wz_acc ;	 
+//			
+//		float acc_temp1=(float)(reference_vr_imd_down_fc[2] *mpu6050_fc.Acc.z + reference_vr_imd_down_fc[0] *mpu6050_fc.Acc.x + reference_vr_imd_down_fc[1] *mpu6050_fc.Acc.y - 4096  )/4096.0f*9.8;
+//		wz_acc+= ( 1 / ( 1 + 1 / ( 20 *3.14f *t_mems ) ) )*( (acc_temp1 - wz_acc));	
+//		double Z_kf[3]={MS5611_Altitude,0,0};
+//	  kf_oldx( X_kf_baro,  P_kf_baro,  Z_kf,  wz_acc, gh,  ga,  gwa,t_mems);
+	
+	
 	}
 	TIM_ClearITPendingBit(TIM3,TIM_IT_Update);  //清除中断标志位
 }

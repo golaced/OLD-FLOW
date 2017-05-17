@@ -16,8 +16,9 @@
 //修改说明
 //无
 ////////////////////////////////////////////////////////////////////////////////// 
-
-
+#define GET_T_HML_CAL 1
+extern double X_kf_baro[3], P_kf_baro[9];
+extern u8 bmp_rx;
 //0,不支持ucos
 //1,支持ucos
 #define SYSTEM_SUPPORT_OS		0		//定义系统文件夹是否支持UCOS

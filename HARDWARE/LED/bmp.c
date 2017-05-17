@@ -3,7 +3,7 @@
 #include "iic_hml.h"
 #include "imu.h"
 #include <math.h>
-
+#include "delay.h"
 volatile float MS5611_Temperature,MS5611_Pressure,MS5611_Altitude,MS5611_VerticalSpeed;
 float baro_alt_speed_ano;
 int baroAlt,baroAlt_fc;
@@ -46,7 +46,7 @@ uint8_t Baro_ALT_Updated = 0; //气压计高度更新完成标志。
 volatile float MS5611_Temperature,MS5611_Pressure,MS5611_Altitude,MS5611_VerticalSpeed;
 
 // 延时表单位 us 	  不同的采样精度对应不同的延时值
-uint32_t MS5611_Delay_us[9] = {
+uint32_t MS5611_delay_us[9] = {
 	1500,//MS561101BA_OSR_256 0.9ms  0x00
 	1500,//MS561101BA_OSR_256 0.9ms  
 	2000,//MS561101BA_OSR_512 1.2ms  0x02
@@ -119,13 +119,13 @@ void MS561101BA_readPROM(void)
 			IIC_Send_Byte(MS561101BA_PROM_BASE_ADDR + (i * MS561101BA_PROM_REG_SIZE));
 			IIC_Wait_Ack();	
 			IIC_Stop();
-			Delay_us(5);
+			delay_us(5);
 			IIC_Start();
 			IIC_Send_Byte(MS5611_ADDR+1);  //进入接收模式	
-			Delay_us(1);
+			delay_us(1);
 			IIC_Wait_Ack();
 			inth = IIC_Read_Byte(1);  //带ACK的读数据
-			Delay_us(1);
+			delay_us(1);
 			intl = IIC_Read_Byte(0);	 //最后一个字节NACK
 			IIC_Stop();
 //			IIC_Read_nByte(MS5611_ADDR, MS561101BA_PROM_BASE_ADDR + (i * MS561101BA_PROM_REG_SIZE),2, i2cret); 
@@ -214,7 +214,7 @@ uint32_t MS561101BA_getConversion(void)
 void MS5611_Init_FC(void) 
 {  
 	MS561101BA_reset(); // 复位 MS561101B 
-	Delay_ms(100); // 延时 
+	delay_ms(100); // 延时 
 	MS561101BA_readPROM(); // 读取EEPROM 中的标定值 待用	
 }
 
@@ -338,33 +338,33 @@ void MS5611_ThreadNew(void)
  		case SCTemperature:  //启动温度转换
 			//开启温度转换
 				MS561101BA_startConversion(MS561101BA_D2 + MS5611Temp_OSR);
-				Current_delay = MS5611_Delay_us[MS5611Temp_OSR] ;//转换时间
-				Start_Convert_Time =GetSysTime_us();// micros(); //计时开始
+				Current_delay = MS5611_delay_us[MS5611Temp_OSR] ;//转换时间
+				Start_Convert_Time =micros();// micros(); //计时开始
 				Now_doing = CTemperatureing;//下一个状态
  		break;
 		
 		case CTemperatureing:  //正在转换中 
-			if((GetSysTime_us()-Start_Convert_Time) > Current_delay)
+			if((micros()-Start_Convert_Time) > Current_delay)
 			{ //延时时间到了吗？
 				MS561101BA_GetTemperature(); //取温度	
 				//启动气压转换
 				MS561101BA_startConversion(MS561101BA_D1 + MS5611Press_OSR);
-				Current_delay = MS5611_Delay_us[MS5611Press_OSR];//转换时间
-				Start_Convert_Time = GetSysTime_us();//计时开始
+				Current_delay = MS5611_delay_us[MS5611Press_OSR];//转换时间
+				Start_Convert_Time = micros();//计时开始
 				Now_doing = SCPressureing;//下一个状态
 			}
 			break;
  
 		case SCPressureing:	 //正在转换气压值
-			if((GetSysTime_us()-Start_Convert_Time) > Current_delay)
+			if((micros()-Start_Convert_Time) > Current_delay)
 			{ //延时时间到了吗？
 				MS561101BA_getPressure();   //更新 计算	
 				Baro_ALT_Updated = 0xff; 	//高度更新 完成。
 			//	Now_doing = SCTemperature;  //从头再来
 				//开启温度转换
 				MS561101BA_startConversion(MS561101BA_D2 + MS5611Temp_OSR);
-				Current_delay = MS5611_Delay_us[MS5611Temp_OSR] ;//转换时间
-				Start_Convert_Time = GetSysTime_us(); //计时开始
+				Current_delay = MS5611_delay_us[MS5611Temp_OSR] ;//转换时间
+				Start_Convert_Time = micros(); //计时开始
 				Now_doing = CTemperatureing;//下一个状态
 			}
 			break;

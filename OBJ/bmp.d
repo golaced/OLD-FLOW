@@ -44,3 +44,4 @@
 ..\obj\bmp.o: ..\HARDWARE\LED\imu.h
 ..\obj\bmp.o: ..\HARDWARE\LED\mymath.h
 ..\obj\bmp.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+..\obj\bmp.o: ..\SYSTEM\delay\delay.h
