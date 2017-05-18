@@ -137,15 +137,22 @@ void OV5640_JPEG_Mode(void)
 		OV5640_WR_Reg(OV5640_jpeg_reg_tbl[i][0],OV5640_jpeg_reg_tbl[i][1]);  
 	}  
 }
-//OV5640切换为RGB565模式
+#define USE_FPS60 0
 void OV5640_RGB565_Mode(void) 
 {
 	u16 i=0;
 	//设置:RGB565输出
+	#if USE_FPS60
+	for(i=0;i<(sizeof(ov5640_rgb565_reg_tbl60)/4);i++)
+	{
+		OV5640_WR_Reg(ov5640_rgb565_reg_tbl60[i][0],ov5640_rgb565_reg_tbl60[i][1]); 
+	} 
+	#else
 	for(i=0;i<(sizeof(ov5640_rgb565_reg_tbl)/4);i++)
 	{
 		OV5640_WR_Reg(ov5640_rgb565_reg_tbl[i][0],ov5640_rgb565_reg_tbl[i][1]); 
 	} 
+	#endif
 } 
 //EV曝光补偿设置参数表，支持7个等级
 const static u8 OV5640_EXPOSURE_TBL[7][6]=

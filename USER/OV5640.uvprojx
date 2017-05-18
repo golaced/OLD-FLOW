@@ -522,6 +522,11 @@
               <FileType>1</FileType>
               <FilePath>..\FWLIB\src\stm32f4xx_usart.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f4xx_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWLIB\src\stm32f4xx_spi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -565,16 +570,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>REDME</GroupName>
-          <Files>
-            <File>
-              <FileName>readme.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\readme.txt</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>MEMS</GroupName>
           <Files>
             <File>
@@ -611,6 +606,26 @@
               <FileName>filter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\filter.c</FilePath>
+            </File>
+            <File>
+              <FileName>imu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\LED\imu.c</FilePath>
+            </File>
+            <File>
+              <FileName>flash_w25.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\LED\flash_w25.c</FilePath>
+            </File>
+            <File>
+              <FileName>kf_oldx.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\HARDWARE\LED\kf_oldx.lib</FilePath>
+            </File>
+            <File>
+              <FileName>KF_OLDX_NAV.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\KEY\KF_OLDX_NAV.c</FilePath>
             </File>
           </Files>
         </Group>

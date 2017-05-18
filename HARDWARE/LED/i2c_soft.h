@@ -23,10 +23,6 @@ void I2c_Soft_Init(void);
 void I2c_Soft_SendByte(u8 SendByte);
 u8 I2c_Soft_ReadByte(u8);
 
-//int I2c_Soft_Single_Write(u8 SlaveAddress,u8 REG_Address,u8 REG_data);
-//int I2c_Soft_Single_Read(u8 SlaveAddress,u8 REG_Address);
-//int I2c_Soft_Mult_Read(u8 SlaveAddress,u8 REG_Address,u8 * ptChar,u8 size);
-
 u8 IIC_Write_1Byte(u8 SlaveAddress,u8 REG_Address,u8 REG_data);
 u8 IIC_Read_1Byte(u8 SlaveAddress,u8 REG_Address,u8 *REG_data);
 u8 IIC_Write_nByte(u8 SlaveAddress, u8 REG_Address, u8 len, u8 *buf);

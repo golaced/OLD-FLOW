@@ -130,8 +130,8 @@ void My_DCMI_Init(void)
 //DCMI,启动传输
 void DCMI_Start(void)
 {  
-  LCD_SetCursor(0,0);  
-	LCD_WriteRAM_Prepare();		//开始写入GRAM
+ // LCD_SetCursor(0,0);  
+	//LCD_WriteRAM_Prepare();		//开始写入GRAM
 	DMA_Cmd(DMA2_Stream1, ENABLE);//开启DMA2,Stream1 
 	DCMI_CaptureCmd(ENABLE);//DCMI捕获使能  
 }
@@ -148,16 +148,16 @@ void DCMI_Stop(void)
 //以下两个函数,供usmart调用,用于调试代码
 
 //DCMI设置显示窗口
-//sx,sy;LCD的起始坐标
-//width,height:LCD显示范围.
+//sx,sy;//LCD的起始坐标
+//width,height://LCD显示范围.
 void DCMI_Set_Window(u16 sx,u16 sy,u16 width,u16 height)
 {
 	DCMI_Stop(); 
-	LCD_Clear(WHITE);
-	LCD_Set_Window(sx,sy,width,height);
+	//LCD_Clear(WHITE);
+	//LCD_Set_Window(sx,sy,width,height);
 	OV5640_OutSize_Set(4,0,width,height);
-  LCD_SetCursor(0,0);  
-	LCD_WriteRAM_Prepare();		//开始写入GRAM
+  //LCD_SetCursor(0,0);  
+	//LCD_WriteRAM_Prepare();		//开始写入GRAM
 	
 	DMA_Cmd(DMA2_Stream1,ENABLE);	//开启DMA2,Stream1 
 	

@@ -18,6 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////// 
 #define GET_T_HML_CAL 1
 extern double X_kf_baro[3], P_kf_baro[9];
+extern float K_acc_flt;
+extern float acc_flt[3];
 extern u8 bmp_rx;
 //0,不支持ucos
 //1,支持ucos

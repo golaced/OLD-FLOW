@@ -39,3 +39,4 @@
 ..\obj\mpu6050.o: ..\HARDWARE\LED\mymath.h
 ..\obj\mpu6050.o: ..\HARDWARE\LED\i2c_soft.h
 ..\obj\mpu6050.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+..\obj\mpu6050.o: ..\SYSTEM\delay\delay.h

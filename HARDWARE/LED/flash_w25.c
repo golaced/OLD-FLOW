@@ -366,13 +366,13 @@ mpu6050_fc.Acc_Offset.x=(vs16)(FLASH_READ_BUF[7]<<8|FLASH_READ_BUF[6]);
 mpu6050_fc.Acc_Offset.y=(vs16)(FLASH_READ_BUF[9]<<8|FLASH_READ_BUF[8]);
 mpu6050_fc.Acc_Offset.z=(vs16)(FLASH_READ_BUF[11]<<8|FLASH_READ_BUF[10]);
 	
-ak8975_fc.Mag_Offset.x=(vs16)(FLASH_READ_BUF[13]<<8|FLASH_READ_BUF[12]);
-ak8975_fc.Mag_Offset.y=(vs16)(FLASH_READ_BUF[15]<<8|FLASH_READ_BUF[14]);
-ak8975_fc.Mag_Offset.z=(vs16)(FLASH_READ_BUF[17]<<8|FLASH_READ_BUF[16]);
-	
-ak8975_fc.Mag_Gain.x =(float)((vs16)((FLASH_READ_BUF[19]<<8|FLASH_READ_BUF[18])))/100.;
-ak8975_fc.Mag_Gain.y=(float)((vs16)((FLASH_READ_BUF[21]<<8|FLASH_READ_BUF[20])))/100.;
-ak8975_fc.Mag_Gain.z =(float)((vs16)((FLASH_READ_BUF[23]<<8|FLASH_READ_BUF[22])))/100.;
+//ak8975_fc.Mag_Offset.x=(vs16)(FLASH_READ_BUF[13]<<8|FLASH_READ_BUF[12]);
+//ak8975_fc.Mag_Offset.y=(vs16)(FLASH_READ_BUF[15]<<8|FLASH_READ_BUF[14]);
+//ak8975_fc.Mag_Offset.z=(vs16)(FLASH_READ_BUF[17]<<8|FLASH_READ_BUF[16]);
+//	
+//ak8975_fc.Mag_Gain.x =(float)((vs16)((FLASH_READ_BUF[19]<<8|FLASH_READ_BUF[18])))/100.;
+//ak8975_fc.Mag_Gain.y=(float)((vs16)((FLASH_READ_BUF[21]<<8|FLASH_READ_BUF[20])))/100.;
+//ak8975_fc.Mag_Gain.z =(float)((vs16)((FLASH_READ_BUF[23]<<8|FLASH_READ_BUF[22])))/100.;
 	
 //	
 //lis3mdl.Gyro_Offset.x=(vs16)(FLASH_READ_BUF[25]<<8|FLASH_READ_BUF[24]);
@@ -421,26 +421,26 @@ FLASH_Buffer[cnt++]=BYTE1(_temp);
 _temp=(int16_t)mpu6050_fc.Acc_Offset.z;
 FLASH_Buffer[cnt++]=BYTE0(_temp);
 FLASH_Buffer[cnt++]=BYTE1(_temp);
-_temp=(int16_t)ak8975_fc.Mag_Offset.x;
-FLASH_Buffer[cnt++]=BYTE0(_temp);
-FLASH_Buffer[cnt++]=BYTE1(_temp);
-_temp=(int16_t)ak8975_fc.Mag_Offset.y;
-FLASH_Buffer[cnt++]=BYTE0(_temp);
-FLASH_Buffer[cnt++]=BYTE1(_temp);
-_temp=(int16_t)ak8975_fc.Mag_Offset.z;
-FLASH_Buffer[cnt++]=BYTE0(_temp);
-FLASH_Buffer[cnt++]=BYTE1(_temp);
+//_temp=(int16_t)ak8975_fc.Mag_Offset.x;
+//FLASH_Buffer[cnt++]=BYTE0(_temp);
+//FLASH_Buffer[cnt++]=BYTE1(_temp);
+//_temp=(int16_t)ak8975_fc.Mag_Offset.y;
+//FLASH_Buffer[cnt++]=BYTE0(_temp);
+//FLASH_Buffer[cnt++]=BYTE1(_temp);
+//_temp=(int16_t)ak8975_fc.Mag_Offset.z;
+//FLASH_Buffer[cnt++]=BYTE0(_temp);
+//FLASH_Buffer[cnt++]=BYTE1(_temp);
 
 
-_temp=(int16_t)(ak8975_fc.Mag_Gain.x*100);
-FLASH_Buffer[cnt++]=BYTE0(_temp);
-FLASH_Buffer[cnt++]=BYTE1(_temp);
-_temp=(int16_t)(ak8975_fc.Mag_Gain.y*100);
-FLASH_Buffer[cnt++]=BYTE0(_temp);
-FLASH_Buffer[cnt++]=BYTE1(_temp);
-_temp=(int16_t)(ak8975_fc.Mag_Gain.z*100);
-FLASH_Buffer[cnt++]=BYTE0(_temp);
-FLASH_Buffer[cnt++]=BYTE1(_temp);
+//_temp=(int16_t)(ak8975_fc.Mag_Gain.x*100);
+//FLASH_Buffer[cnt++]=BYTE0(_temp);
+//FLASH_Buffer[cnt++]=BYTE1(_temp);
+//_temp=(int16_t)(ak8975_fc.Mag_Gain.y*100);
+//FLASH_Buffer[cnt++]=BYTE0(_temp);
+//FLASH_Buffer[cnt++]=BYTE1(_temp);
+//_temp=(int16_t)(ak8975_fc.Mag_Gain.z*100);
+//FLASH_Buffer[cnt++]=BYTE0(_temp);
+//FLASH_Buffer[cnt++]=BYTE1(_temp);
 
 
 

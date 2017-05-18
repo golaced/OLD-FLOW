@@ -1,14 +1,16 @@
 #include "mpu6050.h"
 #include "mymath.h"
 #include "i2c_soft.h"
-
+#include "delay.h"
 MPU6050_STRUCT mpu6050,mpu6050_fc;
 
-u8 mpu6050_buffer[14];
+volatile u8 mpu6050_buffer[14]={0};
 u8 mpu6050_ok;
 void MPU6050_Read(void)
-{
+{u8 i=0;
     I2C_FastMode = 1;
+	  for(i=0;i<14;i++)
+		mpu6050_buffer[i]=0;
     IIC_Read_nByte(MPU6050_ADDR,MPU6050_RA_ACCEL_XOUT_H,14,mpu6050_buffer);
 }
 
@@ -193,10 +195,8 @@ void MPU6050_Init(u16 lpf)
         break;
     }
     I2c_Soft_Init();
-
     //设备复位
-//	IIC_Write_1Byte(MPU6050_ADDR,MPU6050_RA_PWR_MGMT_1, 0x80);
-
+  	//IIC_Write_1Byte(MPU6050_ADDR,MPU6050_RA_PWR_MGMT_1, 0x80);
     MPU6050_setSleepEnabled(0); //进入工作状态
     delay_ms(10);
     MPU6050_setClockSource(MPU6050_CLOCK_PLL_ZGYRO); //设置时钟  0x6b   0x03
@@ -224,7 +224,7 @@ void MPU6050_Data_Offset()
 {
 #ifdef ACC_ADJ_EN
 
-    if(mpu6050_fc.Acc_CALIBRATE == 1)
+    if(mpu6050_fc.Acc_CALIBRATE == 123)
     {
         if(my_sqrt(my_pow(mpu6050_fc.Acc_I16.x)+my_pow(mpu6050_fc.Acc_I16.y)+my_pow(mpu6050_fc.Acc_I16.z)) < 2500)
         {
@@ -249,16 +249,14 @@ void MPU6050_Data_Offset()
             mpu6050_fc.Acc_Temprea_Offset = sum_temp[TEM]/OFFSET_AV_NUM;
             acc_sum_cnt =0;
             mpu6050_fc.Acc_CALIBRATE = 0;
-			//f.msg_id = 1;
-		///	f.msg_data = 1;
-            WRITE_PARM();// Param_SaveAccelOffset(&mpu6050_fc.Acc_Offset);
+
             sum_temp[A_X] = sum_temp[A_Y] = sum_temp[A_Z] = sum_temp[TEM] = 0;
         }
     }
 
 #endif
 
-    if(mpu6050_fc.Gyro_CALIBRATE)
+    if(mpu6050_fc.Gyro_CALIBRATE==123)
     {
         gyro_sum_cnt++;
         sum_temp[G_X] += mpu6050_fc.Gyro_I16.x;
