@@ -2,6 +2,7 @@
 #define JCAPI_H
 #include "jinclude.h"			 //图像压缩的头文件
 #include "stm32f4xx.h"			 //图像压缩的头文件
+#include "sys.h"			 //图像压缩的头文件
 jpeg_compress_info * jpeg_create_compress (void);     
 void jpeg_destory_compress(jpeg_compress_info *cinfo);
 
@@ -13,7 +14,7 @@ void jpeg_finish_compress (jpeg_compress_info *cinfo);
 
 void jpeg_write_scanline  (jpeg_compress_info *cinfo, JSAMPLE *samp_row);
 void Compression(int width,int height,float quality) ;
-#define JUGG_BUF 64*64*3
+#define JUGG_BUF (int)(64*64*2*1.5)
 #define IN_BUF JUGG_BUF
 extern unsigned char JPG_enc_buf[JUGG_BUF];//jpeg 输出
 extern void RGB565TORGB24(u32 num,u16 Pixel);

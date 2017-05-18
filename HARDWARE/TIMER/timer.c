@@ -65,31 +65,13 @@ void TIM3_IRQHandler(void)
 	if(TIM_GetITStatus(TIM3,TIM_IT_Update)==SET) //溢出中断
 	{ float t_mems = Get_Cycle_T(2)/1000000.0f;								//???????????
     cnt_1s+=t_mems*1000000;		
-		if(cnt_1s++>0){cnt_1s=0;
+		if(cnt_1s++>10){cnt_1s=0;
 		ov_frame_rx=ov_frame;
 		ov_frame=0;
 	  }
+    if(!sonar_fc||!fc_connect)
+    Ultra_Duty();
 
-  
-//	  MPU6050_Read();
-//		MPU6050_Data_Prepare( t_mems );			
-//		IMUupdate(0.5f *t_mems,mpu6050_fc.Gyro_deg.x, mpu6050_fc.Gyro_deg.y, mpu6050_fc.Gyro_deg.z, mpu6050_fc.Acc.x, mpu6050_fc.Acc.y, mpu6050_fc.Acc.z	,&Rol_fc,&Pit_fc,&Yaw_fc);		
-//		float a_br[3];
-//		a_br[0] =(float) mpu6050_fc.Acc.x/4096.;//16438.;
-//		a_br[1] =(float) mpu6050_fc.Acc.y/4096.;//16438.;
-//		a_br[2] =(float) mpu6050_fc.Acc.z/4096.;//16438.;
-//		// acc
-//		float acc_temp[3];
-//		acc_temp[0] = a_br[1]*ref_q_imd_down_fc[2]  - a_br[2]*ref_q_imd_down_fc[1] ;
-//		acc_temp[1] = a_br[2]*ref_q_imd_down_fc[0]  - a_br[0]*ref_q_imd_down_fc[2] ;
-//	  acc_temp[2] =(ref_q_imd_down_fc[2] *a_br[2] + ref_q_imd_down_fc[0] *a_br[0] + ref_q_imd_down_fc[1] *a_br[1]);
-//	  float acc_neo_temp[3];
-//	  acc_neo_temp[0]=acc_temp[0]*9.87;
-//		acc_neo_temp[1]=acc_temp[1]*9.87;
-//		acc_neo_temp[2]=(acc_temp[2]-1.0f)*9.87;		
-//		acc_flt[0] += ( 1 / ( 1 + 1 / ( K_acc_flt *3.14f *t_mems ) ) ) *( acc_neo_temp[0] - acc_flt[0] );
-//	  acc_flt[1] += ( 1 / ( 1 + 1 / ( K_acc_flt *3.14f *t_mems ) ) ) *( acc_neo_temp[1] - acc_flt[1] );
-//		acc_flt[2] += ( 1 / ( 1 + 1 / ( K_acc_flt *3.14f *t_mems ) ) ) *( acc_neo_temp[2] - acc_flt[2] );
 	}
 	TIM_ClearITPendingBit(TIM3,TIM_IT_Update);  //清除中断标志位
 }

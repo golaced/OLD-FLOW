@@ -57,15 +57,7 @@ int fputc(int ch, FILE *f)
 }
 #endif
  
-#if EN_USART1_RX   //如果使能了接收
-//串口1中断服务程序
-//注意,读取USARTx->SR能避免莫名其妙的错误   	
-u8 USART_RX_BUF[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
-//接收状态
-//bit15，	接收完成标志
-//bit14，	接收到0x0d
-//bit13~0，	接收到的有效字节数目
-u16 USART_RX_STA=0;       //接收状态标记	
+
 
 //初始化IO 串口1 
 //bound:波特率
@@ -102,58 +94,160 @@ void uart_init(u32 bound){
   USART_Cmd(USART1, ENABLE);  //使能串口1 
 	
 	//USART_ClearFlag(USART1, USART_FLAG_TC);
-	
-#if EN_USART1_RX	
+
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//开启相关中断
 
 	//Usart1 NVIC 配置
   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;//串口1中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;//抢占优先级3
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority =3;		//子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=1;//抢占优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority =0;		//子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器、
-
-#endif
 	
+}
+float sonar_fc;
+u8 fc_connect;
+u16 fc_connect_loss=0;
+void Data_app(u8 *data_buf,u8 num)
+{
+	vs16 rc_value_temp;
+	u8 sum = 0;
+	u8 i;
+	for( i=0;i<(num-1);i++)
+		sum += *(data_buf+i);
+	if(!(sum==*(data_buf+num-1)))		return;		//??sum
+	if(!(*(data_buf)==0xAA && *(data_buf+1)==0xAF))		return;		//????
+	
+		if(*(data_buf+2)==0x01)								//?????,=0x8a,?????
+	{ fc_connect=1;
+		fc_connect_loss=0;
+	  sonar_fc = (float)((vs16)(*(data_buf+4)<<8)|*(data_buf+5))/1000.;
+	}
+
 }
 
 
-void USART1_IRQHandler(void)                	//串口1中断服务程序
+u8 Rx_Buf_app[256];	//??????
+u8 RxBuffer_app[50];
+u8 RxState_app = 0;
+u8 RxBufferNum_app = 0;
+u8 RxBufferCnt_app = 0;
+u8 RxLen_app = 0;
+static u8 _data_len_app = 0,_data_cnt_app = 0;
+
+void USART1_IRQHandler(void)
 {
-	u8 Res;
-#if SYSTEM_SUPPORT_OS 		//如果SYSTEM_SUPPORT_OS为真，则需要支持OS.
-	OSIntEnter();    
-#endif
-	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+	u8 com_data;
+	if(USART1->SR & USART_SR_ORE)//ORE??
 	{
-		Res =USART_ReceiveData(USART1);//(USART1->DR);	//读取接收到的数据
-		
-		if((USART_RX_STA&0x8000)==0)//接收未完成
+		com_data = USART1->DR;
+	}
+
+  //????
+	if( USART_GetITStatus(USART1,USART_IT_RXNE) )
+	{
+		USART_ClearITPendingBit(USART1,USART_IT_RXNE);//??????
+   
+		com_data = USART1->DR;
+	 		if(RxState_app==0&&com_data==0xAA)
 		{
-			if(USART_RX_STA&0x4000)//接收到了0x0d
-			{
-				if(Res!=0x0a)USART_RX_STA=0;//接收错误,重新开始
-				else USART_RX_STA|=0x8000;	//接收完成了 
-			}
-			else //还没收到0X0D
-			{	
-				if(Res==0x0d)USART_RX_STA|=0x4000;
-				else
-				{
-					USART_RX_BUF[USART_RX_STA&0X3FFF]=Res ;
-					USART_RX_STA++;
-					if(USART_RX_STA>(USART_REC_LEN-1))USART_RX_STA=0;//接收数据错误,重新开始接收	  
-				}		 
-			}
-		}   		 
-  } 
-#if SYSTEM_SUPPORT_OS 	//如果SYSTEM_SUPPORT_OS为真，则需要支持OS.
-	OSIntExit();  											 
-#endif
-} 
-#endif	
+			RxState_app=1;
+			RxBuffer_app[0]=com_data;
+		}
+		else if(RxState_app==1&&com_data==0xAF)
+		{
+			RxState_app=2;
+			RxBuffer_app[1]=com_data;
+		}
+		else if(RxState_app==2&&com_data>0&&com_data<0XF1)
+		{
+			RxState_app=3;
+			RxBuffer_app[2]=com_data;
+		}
+		else if(RxState_app==3&&com_data<50)
+		{
+			RxState_app = 4;
+			RxBuffer_app[3]=com_data;
+			_data_len_app = com_data;
+			_data_cnt_app = 0;
+		}
+		else if(RxState_app==4&&_data_len_app>0)
+		{
+			_data_len_app--;
+			RxBuffer_app[4+_data_cnt_app++]=com_data;
+			if(_data_len_app==0)
+				RxState_app = 5;
+		}
+		else if(RxState_app==5)
+		{
+			RxState_app = 0;
+			RxBuffer_app[4+_data_cnt_app]=com_data;
+			Data_app(RxBuffer_app,_data_cnt_app+5);
+		}
+		else
+			RxState_app = 0;
+	
+	}
+	if( USART_GetITStatus(USART1,USART_IT_TXE ) )
+	{
+				
+		USART_ClearITPendingBit(USART1,USART_IT_TXE);
+	}
+
+}
 
  
+
+void UsartSend_FLOW(uint8_t ch)
+{
+
+while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+USART_SendData(USART1, ch); ;//USART1, ch); 
+}
+
+static void Send_Data_FLOW(u8 *dataToSend , u8 length)
+{
+u16 i;
+  for(i=0;i<length;i++)
+     UsartSend_FLOW(dataToSend[i]);
+}
+
+#include "flow.h"
+void Send_FLOW(void)
+{u8 i;	u8 sum = 0;
+	u8 data_to_send[50];
+	u8 _cnt=0;
+	vs16 _temp;
+  data_to_send[_cnt++]=0xAA;
+	data_to_send[_cnt++]=0xAF;
+	data_to_send[_cnt++]=0x01;//???
+	data_to_send[_cnt++]=0;//???
+	
+	_temp = (vs16)(flow.x_kf[1]*1000);//ultra_distance;
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(flow.x_kf[0]*1000);//ultra_distance;
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(ALT_POS_SONAR*1000);//ultra_distance;
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	
+	
+	data_to_send[3] = _cnt-4;
+
+	for( i=0;i<_cnt;i++)
+		sum += data_to_send[i];
+	data_to_send[_cnt++] = sum;
+	
+	Send_Data_FLOW(data_to_send, _cnt);
+}
+
+
+
+
+
+
 void UsartSend_GOL_LINK(u8 ch)
 {
 

@@ -37,6 +37,6 @@
 ..\obj\jpg_code.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\jpg_code.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\jpg_code.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
-..\obj\jpg_code.o: ..\SYSTEM\delay\delay.h
 ..\obj\jpg_code.o: ..\SYSTEM\sys\sys.h
+..\obj\jpg_code.o: ..\SYSTEM\delay\delay.h
 ..\obj\jpg_code.o: ..\SYSTEM\usart\usart.h

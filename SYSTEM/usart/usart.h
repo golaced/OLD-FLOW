@@ -47,6 +47,11 @@ extern u16 SendBuff1_cnt;
 extern u8 SendBuff2[SEND_BUF_SIZE2];	//发送数据缓冲区
 extern u16 SendBuff2_cnt;
 #define USART_LINK USART2
+
+void Send_FLOW(void);
+extern float sonar_fc;
+extern u8 fc_connect;
+extern u16 fc_connect_loss;
 #endif
 
 

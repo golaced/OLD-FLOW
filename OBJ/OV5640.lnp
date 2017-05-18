@@ -38,6 +38,7 @@
 "..\obj\filter.o"
 "..\obj\flash_w25.o"
 "..\obj\imu.o"
+"..\obj\ultrasonic.o"
 "..\obj\kf_oldx_nav.o"
 "..\obj\rt_nonfinite.o"
 "..\obj\rtgetnan.o"

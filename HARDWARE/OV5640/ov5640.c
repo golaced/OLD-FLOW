@@ -137,7 +137,7 @@ void OV5640_JPEG_Mode(void)
 		OV5640_WR_Reg(OV5640_jpeg_reg_tbl[i][0],OV5640_jpeg_reg_tbl[i][1]);  
 	}  
 }
-#define USE_FPS60 0
+
 void OV5640_RGB565_Mode(void) 
 {
 	u16 i=0;

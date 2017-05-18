@@ -18,6 +18,148 @@
 #include "ak8975.h"
 #include "mymath.h"
 #include "filter.h"
+#include "ultrasonic.h"
+
+u16 ultra_distance_old;
+
+_height_st ultra;
+
+u8 measure_num=8;
+u16 Distance[50]  = {0};
+float sonar_filter_oldx(float in) 
+{
+    u8 IS_success =1;
+    u16 Distance1 = 0;
+    u16 MAX_error1 = 0;
+    u8 MAX_error_targe = 0;
+    u8 count = 0;
+    u8 i =0;
+    u8 j =0;
+    u8 num =0; 
+    Distance[measure_num-1]=in;
+    for(i=0;i<measure_num-1;i++)
+		{
+		 Distance[i]=Distance[i+1]; 
+		}
+        for(i = 0 ; i < measure_num-1 ; i++)
+        {
+
+            for(j = 0 ; j < measure_num-1-i; j++)       
+            {
+                if(Distance[j] > Distance[j+1] )
+                {
+                    Distance1 = Distance[j];
+                    Distance[j] =  Distance[j+1];
+                    Distance[j+1] = Distance1; 
+                }
+            }
+
+        }
+        MAX_error1 = Distance[1] - Distance[0];
+        for(i = 1 ; i < measure_num-1 ; i++)
+        {
+            if(MAX_error1 < Distance[i+1] - Distance[i] )//如：1 2 3 4 5    8 9 10    MAX_error_targe=4;
+            {
+                MAX_error1 =  Distance[i+1] - Distance[i];//最大差距
+                MAX_error_targe = i;  //记下最大差距值的位置（这组数中的位置）
+            }
+        }
+        float UltrasonicWave_Distance1=0;
+        if(MAX_error_targe+1 > (measure_num+1)/2) //前部分有效  1 2 3 4 5    8 9 10  (如果位于中间，后半部优先)
+        {
+            for(i = 0 ; i <= MAX_error_targe ; i++)
+            {
+                UltrasonicWave_Distance1 += Distance[i];
+            }
+            UltrasonicWave_Distance1 /= (MAX_error_targe+1);//取平均
+        }
+        else  //后部分有效  1 2 3   7 8 9 10
+        {
+             for(i = MAX_error_targe + 1 ; i < measure_num ; i++)
+            {
+                UltrasonicWave_Distance1 += Distance[i];
+            }
+            UltrasonicWave_Distance1 /= (measure_num - MAX_error_targe -1);//取平均
+        }
+    return  (float)UltrasonicWave_Distance1/1000.; //转化为米为单位的浮点数
+}
+
+
+static float sonar_values[3] = { 0.0f };
+static unsigned insert_index = 0;
+
+static void sonar_bubble_sort(float sonar_values[], unsigned n);
+
+void sonar_bubble_sort(float sonar_values[], unsigned n)
+{
+	float t;
+
+	for (unsigned i = 0; i < (n - 1); i++) {
+		for (unsigned j = 0; j < (n - i - 1); j++) {
+			if (sonar_values[j] > sonar_values[j+1]) {
+				/* swap two values */
+				t = sonar_values[j];
+				sonar_values[j] = sonar_values[j + 1];
+				sonar_values[j + 1] = t;
+			}
+		}
+	}
+}
+
+float insert_sonar_value_and_get_mode_value(float insert)
+{
+	const unsigned sonar_count = sizeof(sonar_values) / sizeof(sonar_values[0]);
+
+	sonar_values[insert_index] = insert;
+	insert_index++;
+	if (insert_index == sonar_count) {
+		insert_index = 0;
+	}
+
+	/* sort and return mode */
+
+	/* copy ring buffer */
+	float sonar_temp[sonar_count];
+	memcpy(sonar_temp, sonar_values, sizeof(sonar_values));
+
+	sonar_bubble_sort(sonar_temp, sonar_count);
+
+	/* the center element represents the mode after sorting */
+	return sonar_temp[sonar_count / 2];
+}
+
+
+void Ultra_Get(u8 com_data)
+{
+	static u8 ultra_tmp;
+	
+	if( ultra_start_f == 1 )
+	{
+		ultra_tmp = com_data;
+		ultra_start_f = 2;
+	}
+	else if( ultra_start_f == 2 )
+	{
+		ultra.height =  ((ultra_tmp<<8) + com_data);
+		
+		if(ultra.height < 5000) // 5????????,????10?.
+		{
+			//ultra.relative_height =sonar_filter_oldx(ultra.height);
+			ultra.relative_height =insert_sonar_value_and_get_mode_value((float)ultra.height/1000.);
+			ultra.measure_ok = 1;		
+		}
+		else
+		{
+			ultra.measure_ok = 2; //?????
+		}
+		ultra_start_f = 0;
+	}
+	ultra.measure_ot_cnt = 0; //??????(??)
+	ultra.h_delta = ultra.relative_height - ultra_distance_old;
+	ultra_distance_old = ultra.relative_height;
+}
+
+
 
 
 #define Kp 0.3f                	// proportional gain governs rate of convergence to accelerometer/magnetometer
@@ -73,40 +215,27 @@ void IMUupdate(float half_T,float gx, float gy, float gz, float ax, float ay, fl
 		
 		if( 3800 < norm_acc && norm_acc < 4400 )
 		{
-			/* ?????? */
 			ref.err_tmp.x = ay*reference_v.z - az*reference_v.y;
 			ref.err_tmp.y = az*reference_v.x - ax*reference_v.z;
-	    //ref.err_tmp.z = ax*reference_v.y - ay*reference_v.x;
-			
-			/* ???? */
 			ref_err_lpf_hz = REF_ERR_LPF_HZ *(6.28f *half_T);
 			ref.err_lpf.x += ref_err_lpf_hz *( ref.err_tmp.x  - ref.err_lpf.x );
 			ref.err_lpf.y += ref_err_lpf_hz *( ref.err_tmp.y  - ref.err_lpf.y );
-	//			 ref.err_lpf.z += ref_err_lpf_hz *( ref.err_tmp.z  - ref.err_lpf.z );
-			
 			ref.err.x = ref.err_lpf.x;//
 			ref.err.y = ref.err_lpf.y;//
-//				ref.err.z = ref.err_lpf.z ;
 		}
 	}
 	else
 	{
 		ref.err.x = 0; 
 		ref.err.y = 0  ;
-//		ref.err.z = 0 ;
 	}
-	/* ???? */
 	ref.err_Int.x += ref.err.x *Ki *2 *half_T ;
 	ref.err_Int.y += ref.err.y *Ki *2 *half_T ;
 	ref.err_Int.z += ref.err.z *Ki *2 *half_T ;
-	
-	/* ???? */
 	ref.err_Int.x = LIMIT(ref.err_Int.x, - IMU_INTEGRAL_LIM ,IMU_INTEGRAL_LIM );
 	ref.err_Int.y = LIMIT(ref.err_Int.y, - IMU_INTEGRAL_LIM ,IMU_INTEGRAL_LIM );
 	ref.err_Int.z = LIMIT(ref.err_Int.z, - IMU_INTEGRAL_LIM ,IMU_INTEGRAL_LIM );
-	
 	yaw_correct = 0; //????,????,???????????
-
 	ref.g.x = (gx - reference_v.x *yaw_correct) *ANGLE_TO_RADIAN + ( Kp*(ref.err.x + ref.err_Int.x) ) ;     //IN RADIAN
 	ref.g.y = (gy - reference_v.y *yaw_correct) *ANGLE_TO_RADIAN + ( Kp*(ref.err.y + ref.err_Int.y) ) ;		  //IN RADIAN
 	ref.g.z = (gz - reference_v.z *yaw_correct) *ANGLE_TO_RADIAN;
@@ -141,7 +270,7 @@ void IMUupdate(float half_T,float gx, float gy, float gz, float ax, float ay, fl
 #include "imu.h"
 #include "flash_w25.h" 
 
-#define Frame_size 2.2
+
 #define W (int)(64*Frame_size)
 #define H W
 #define FULL_IMAGE_SIZE (H*W)
@@ -170,6 +299,62 @@ u8 get_one;
 u16 off_pix1=0;
 //处理JPEG数据
 //当采集完一帧JPEG数据后,调用此函数,切换JPEG BUF.开始下一帧采集.
+u8 MAX_BRIGHT=250;
+u16 max_num=3;
+float fHistogram[256],fHistogram1[256];
+unsigned char lut[256];
+
+ void Histogram(unsigned char *pImage,int nWidth,int nHeight,float fHisto[256])
+{
+   int i,j;
+   unsigned int uWork;
+   unsigned char *pWork;
+   
+    for ( i=0;i<256;i++ )    fHisto[i]=0.0f;
+    pWork=pImage;
+    for ( i=0;i<nHeight;i++ )
+    {  
+        for ( j=0;j<nWidth;j++,pWork++ )
+        {
+            uWork=(unsigned int)(*pWork);
+            fHisto[uWork]++;
+        }
+    }
+    uWork=nWidth*nHeight;
+    for ( i=0;i<256;i++ )
+    {
+        fHisto[i]/=uWork;
+        fHisto[i]*=100;
+    }
+}
+
+void Enhance(unsigned char *pImage,unsigned char *pImage1,int nWidth,int nHeight,float fHisto[256],float fHisto1[256])
+{
+   int i,j;
+   unsigned int uWork;
+   unsigned char *pWork,*pWork1;
+   
+    for ( i=0;i<256;i++ )
+        fHisto1[i]=fHisto[i]/100;
+    for ( i=1;i<256;i++ )
+        fHisto1[i]+=fHisto1[i-1];
+    for ( i=0;i<256;i++ )
+        lut[i]=fHisto1[i]*256;
+    for ( i=0;i<256;i++ )
+        if ( lut[i]>=255 )
+            lut[i]=255;
+    pWork=pImage; pWork1=pImage1;
+    for ( i=0;i<nHeight;i++ )
+        for ( j=0;j<nWidth;j++,pWork++,pWork1++ )
+            (*pWork1)=lut[(*pWork)]>>max_num;
+}
+
+
+void gray_balance(unsigned char *pImage,unsigned char *pImage1){
+    Histogram(pImage,64,64,fHistogram); //做直方图统计
+    Enhance(pImage,pImage1,64,64,fHistogram,fHistogram1); //
+}
+
 void jpeg_data_process(void)
 {u16 x,y,color,i,j,k,l;
 //uint8_t image_buffer_8bit_now[FULL_IMAGE_SIZE];	
@@ -189,13 +374,13 @@ uint8_t image_buffer_8bit_2_t[64*64]={0};
 		 for(y=H/2-32-offsety;y<64+H/2-32-offsety;y++)	
 			image_buffer_8bit_2_t[k++]=RGB_GRAY_16(read_xy_rgb( jpeg_buf,  x,  y, W));	  
 			
-			
-   	x=y=j=i=k=l=0;	  		
+		x=y=j=i=k=l=0;	  			
+		if(MAX_BRIGHT!=0)	
+		gray_balance(image_buffer_8bit_2_t,image_buffer_8bit_2);	
+		else	
 	  for(i=0;i<64*64;i++)
-			 image_buffer_8bit_2[i]=image_buffer_8bit_2_t[i];
-		
-		
-   	}
+			 image_buffer_8bit_2[i]=image_buffer_8bit_2_t[i];	
+  	}
 		get_one=1;	
 		jpeg_data_ok=2;
 		}
@@ -220,13 +405,19 @@ u8 en_imu=0;
 float ALT_POS_SONAR=0.7;
 float k_px=50;
 FLOW_RAD flow;
+#if USE_FPS60
+float K_spd_flow=0.44;
+#else
 float K_spd_flow=1;
+#endif
+u8 Shape=33;
+u8 Contract=3;
+u8 Effect=0;
 void rgb565_test(void)
 { 
  
 	u16 x,y,color,i,j,k,l;
 	u8 *p;
-	u8 effect=0,contrast=2,fac;
 
 		//自动对焦初始化
 	OV5640_RGB565_Mode();	//RGB565模式 
@@ -234,8 +425,16 @@ void rgb565_test(void)
 	OV5640_Light_Mode(0);	//自动模式
 	OV5640_Color_Saturation(3);//色彩饱和度0
 	OV5640_Brightness(4);	//亮度0
-	OV5640_Contrast(3);		//对比度0
-	OV5640_Sharpness(33);	//自动锐度
+//0:正常    
+//1,冷色
+//2,暖色   
+//3,黑白
+//4,偏黄
+//5,反色
+//6,偏绿	    
+  OV5640_Special_Effects(Effect);
+	OV5640_Contrast(Contract);		//对比度0
+	OV5640_Sharpness(Shape);	//自动锐度
 	OV5640_Focus_Constant();//启动持续对焦
 	My_DCMI_Init();			//DCMI配置
 	DCMI_DMA_Init((u32)&jpeg_buf,jpeg_buf_size,DMA_MemoryDataSize_Word,DMA_MemoryInc_Enable);//DCMI DMA配置  
@@ -244,11 +443,11 @@ void rgb565_test(void)
 	//OV5640_Test_Pattern(2);
 	if(en_camera)
 	DCMI_Start(); 		//启动传输
-	TIM3_Int_Init(10000-1,8400-1);//10Khz计数,1秒钟中断一次
+	TIM3_Int_Init(680-1,8400-1);//10Khz计数,1秒钟中断一次
 	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)SendBuff2,SEND_BUF_SIZE2+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
 	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);       
 	  
-	
+	//en_hist_filter=1; 
 while(1)
 	{ static float t_mpu;
 		float dt= Get_Cycle_T(4)/1000000.0f;								//???????????	
@@ -256,9 +455,7 @@ while(1)
 		if(t_mpu>0.015){
 		MPU6050_Read();
 		MPU6050_Data_Prepare( t_mpu );			
-		IMUupdate(0.5f *t_mpu,mpu6050_fc.Gyro_deg.x, mpu6050_fc.Gyro_deg.y, mpu6050_fc.Gyro_deg.z, mpu6050_fc.Acc.x, 
-
-			mpu6050_fc.Acc.y, mpu6050_fc.Acc.z	,&Rol_fc,&Pit_fc,&Yaw_fc);		
+		IMUupdate(0.5f *t_mpu,mpu6050_fc.Gyro_deg.x, mpu6050_fc.Gyro_deg.y, mpu6050_fc.Gyro_deg.z, mpu6050_fc.Acc.x, mpu6050_fc.Acc.y, mpu6050_fc.Acc.z	,&Rol_fc,&Pit_fc,&Yaw_fc);		
 		float a_br[3];
 		a_br[0] =(float) mpu6050_fc.Acc.x/4096.;//16438.;
 		a_br[1] =(float) mpu6050_fc.Acc.y/4096.;//16438.;
@@ -286,11 +483,11 @@ while(1)
 		0,0,0,
 		0,1,0,
 		0,0,0}; 
-		float Sdpx=flow.h_x_pix;
+		float Sdpx=Moving_Median(0,5,flow.h_x_pix);
 		float  Accx=acc_flt[0];
 	  double Zx[3]={0,Sdpx,0};
 		KF_OLDX_NAV( X_KF_NAV[0],  P_KF_NAV[0],  Zx,  Accx, A,  B,  H1,  ga_nav,  gwa_nav, g_pos_flow,  g_spd_flow,  T);
-		float  Sdpy=flow.h_y_pix;
+		float  Sdpy=Moving_Median(1,5,flow.h_y_pix);
 		float  Accy=acc_flt[1];
 		double Zy[3]={0,Sdpy,0};
 		KF_OLDX_NAV( X_KF_NAV[1],  P_KF_NAV[1],  Zy,  Accy, A,  B,  H1,  ga_nav,  gwa_nav, g_pos_flow,  g_spd_flow,  T);
@@ -300,8 +497,11 @@ while(1)
 		flow.y_kf[0]=X_KF_NAV[1][0];
 		flow.y_kf[1]=X_KF_NAV[1][1];
 		flow.y_kf[2]=X_KF_NAV[1][2];
-	 
+	  Send_FLOW();
+	 if(fc_connect_loss++>33)fc_connect=0;	
 		t_mpu=0;} 														
+    
+		
 
 	//??mpu6????	
 		if(get_one==1)	//已经采集完一帧图像了
@@ -330,6 +530,8 @@ while(1)
 		flow.integrated_ygyro=y_rate *flow.integration_time_us/1000000.;
 		flow.integrated_zgyro=z_rate *flow.integration_time_us/1000000.;
     flow_pertreatment_oldx( &flow , 1);
+		if(sonar_fc==0||!fc_connect)
+		ALT_POS_SONAR=ultra.relative_height;
 		flow.h_x_pix=flow_per_out[3]*ALT_POS_SONAR;
 	  flow.h_y_pix=-flow_per_out[2]*ALT_POS_SONAR;
     lasttime = micros();
@@ -357,7 +559,7 @@ while(1)
 								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
 								SendBuff2[SendBuff2_cnt++]=p[i];
 						  	}else{
-							   data_per_uart1(flow.x_kf[1]*100,flow.h_x_pix*100,0,													 
+							   data_per_uart1(flow.x_kf[1]*100,flow.h_x_pix*100,ALT_POS_SONAR*1000,													 
 								flow.integrated_x*100,flow.integrated_xgyro*100,flow.h_x_pix*100,															
 								flow.integrated_y*100,flow.integrated_ygyro*100,flow.h_y_pix*100,
 						    	Yaw_fc*10,Pit_fc*10,Rol_fc*10,0,0,0,0);			
@@ -386,6 +588,7 @@ int main(void)
  	KEY_Init();					//按键初始化 
 	delay_ms(10);
   MPU6050_Init(20);
+	Ultrasonic_Init();
 	W25QXX_Init();			//W25QXX初始化
 	delay_ms(10);
 	while(W25QXX_ReadID()!=W25Q32&&W25QXX_ReadID()!=W25Q16)	

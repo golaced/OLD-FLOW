@@ -39,4 +39,5 @@
 ..\obj\jcapi.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\jcapi.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\jcapi.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\jcapi.o: ..\SYSTEM\sys\sys.h
 ..\obj\jcapi.o: ..\HARDWARE\USART2\jcint.h

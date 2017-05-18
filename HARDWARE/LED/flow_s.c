@@ -1,6 +1,6 @@
 #include "flow.h"
 #define LIMIT_FLOW( x,min,max ) ( (x) < (min)  ? (min) : ( (x) > (max) ? (max) : (x) ) )
-float rate_threshold=2.22;
+float rate_threshold=1.62;
 float flow_per_out[4];
 float yaw_comp[2];
 float flow_module_offset_x,flow_module_offset_y;
