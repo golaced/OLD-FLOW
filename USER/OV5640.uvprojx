@@ -627,6 +627,16 @@
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\KEY\KF_OLDX_NAV.c</FilePath>
             </File>
+            <File>
+              <FileName>flow_s.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\LED\flow_s.c</FilePath>
+            </File>
+            <File>
+              <FileName>ultrasonic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\LED\ultrasonic.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

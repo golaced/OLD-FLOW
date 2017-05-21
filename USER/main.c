@@ -355,9 +355,34 @@ void gray_balance(unsigned char *pImage,unsigned char *pImage1){
     Enhance(pImage,pImage1,64,64,fHistogram,fHistogram1); //
 }
 
+u8 en_guass=0;
+void gaussianFilter(unsigned char *I_image,unsigned char *O_image, int width, int height,float eps)
+{
+   int i, j, index, sum;
+    int templates[9] = { 1, 2, 1,
+                         2, 4, 2,
+                         1, 2, 1 };
+    sum = height * width;
+    for(i = 1;i < height - 1;i++)
+    {
+        for(j = 1;j < width - 1;j++)
+        {
+            index = sum = 0;
+            for(int m = i - 1;m < i + 2;m++)
+            {
+                for(int n = j - 1; n < j + 2;n++)
+                {
+                    sum +=
+                        I_image[m * width + n] *
+                        templates[index++];
+                }
+            }
+            O_image[i * width + j] = sum / 16;
+        }
+    }
+}
 void jpeg_data_process(void)
 {u16 x,y,color,i,j,k,l;
-//uint8_t image_buffer_8bit_now[FULL_IMAGE_SIZE];	
 uint8_t image_buffer_8bit_2_t[64*64]={0};	
 	if(!ovx_mode)//只有在RGB
 	{
@@ -381,6 +406,11 @@ uint8_t image_buffer_8bit_2_t[64*64]={0};
 	  for(i=0;i<64*64;i++)
 			 image_buffer_8bit_2[i]=image_buffer_8bit_2_t[i];	
   	}
+		if( en_guass){
+    gaussianFilter(image_buffer_8bit_2,image_buffer_8bit_2_t, 64,64,0);
+		for(i=0;i<64*64;i++)
+		 image_buffer_8bit_2[i]=image_buffer_8bit_2_t[i];
+		}			
 		get_one=1;	
 		jpeg_data_ok=2;
 		}
@@ -446,8 +476,8 @@ void rgb565_test(void)
 	TIM3_Int_Init(680-1,8400-1);//10Khz计数,1秒钟中断一次
 	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)SendBuff2,SEND_BUF_SIZE2+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
 	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);       
-	  
-	//en_hist_filter=1; 
+	en_guass=1;  
+	en_hist_filter=1; 
 while(1)
 	{ static float t_mpu;
 		float dt= Get_Cycle_T(4)/1000000.0f;								//???????????	
