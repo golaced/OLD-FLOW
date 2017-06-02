@@ -1,9 +1,28 @@
 #include "flow.h"
+#include "filter.h"
+#define FRAME_SIZE	64
+u16 SEARCH_SIZE=4;//	4*2 ;// maximum offset to search: 4 + 1/2 pixels
+u16 TILE_SIZE=	8;//8*2;               						// x & y tile size
+u16 NUM_BLOCKS=	5;//5*2 ;// x & y number of tiles to check
+u8 meancount_set=1;
+u16 PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD=10;//14;//100;
+u16 PARAM_BOTTOM_FLOW_VALUE_THRESHOLD=3500;//5000;
+float PARAM_GYRO_COMPENSATION_THRESHOLD=0.1;
+u8 en_hist_filter=0;
+u8 en_gro_filter=0;
+
+#define  NUM_BLOCKS_KLT	5//3 8 x & y number of tiles to check  6
+//this are the settings for KLT based flow
+#define PYR_LVLS 2
+#define HALF_PATCH_SIZE 4       //this is half the wanted patch size minus 1  6
+#define PATCH_SIZE (HALF_PATCH_SIZE*2+1)
+u8 meancount_set_klt=1;
+
 
 #if USE_30FPS
 u8 gray_scal=8;
 #else
-u8 gray_scal=5;
+u8 gray_scal=8;
 #endif
 u8 RGB_GRAY(u32 RGB,u8 SEL)
 {u8 Gray,Gray_r;
@@ -72,16 +91,7 @@ return temp;
 }
 
 
-#define FRAME_SIZE	64
-u16 SEARCH_SIZE=4;//	4*2 ;// maximum offset to search: 4 + 1/2 pixels
-u16 TILE_SIZE=	8;//8*2;               						// x & y tile size
-u16 NUM_BLOCKS=	8;//5*2 ;// x & y number of tiles to check
-u8 meancount_set=10;
-u16 PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD=10;//14;//100;
-u16 PARAM_BOTTOM_FLOW_VALUE_THRESHOLD=3500;//5000;
-float PARAM_GYRO_COMPENSATION_THRESHOLD=0.1;
-u8 en_hist_filter=0;
-u8 en_gro_filter=0;
+
 #define sign(x) (( x > 0 ) - ( x < 0 ))
 
 // compliments of Adam Williams
@@ -838,15 +848,10 @@ meancount_view=0.2*meancount+0.8*meancount_view;
 
 
 
-#define  NUM_BLOCKS_KLT	8//3 8 x & y number of tiles to check
-//this are the settings for KLT based flow
-#define PYR_LVLS 2
-#define HALF_PATCH_SIZE 4       //this is half the wanted patch size minus 1
-#define PATCH_SIZE (HALF_PATCH_SIZE*2+1)
 
 float Jx[PATCH_SIZE*PATCH_SIZE];
 float Jy[PATCH_SIZE*PATCH_SIZE];
-
+u8 meancount_v_klt;
 /**
  * @brief Computes pixel flow from image1 to image2
  *
@@ -861,6 +866,7 @@ float Jy[PATCH_SIZE*PATCH_SIZE];
  *
  * @return quality of flow calculation
  */
+
 uint8_t compute_klt(uint8_t *image1, uint8_t *image2, float x_rate, float y_rate, float z_rate, float *pixel_flow_x, float *pixel_flow_y)
 {
   /* variables */
@@ -1071,8 +1077,11 @@ uint8_t compute_klt(uint8_t *image1, uint8_t *image2, float x_rate, float y_rate
     }
   }
 
+	
+	
+	
   /* compute mean flow */
-  if (meancount > 0)
+  if (meancount > meancount_set_klt)
   {
     meanflowx /= meancount;
     meanflowy /= meancount;
@@ -1086,7 +1095,7 @@ uint8_t compute_klt(uint8_t *image1, uint8_t *image2, float x_rate, float y_rate
     *pixel_flow_y = 0.0f;
     return 0;
   }
-
+  meancount_v_klt=meancount;
   /* return quality */
   return (uint8_t)(meancount * 255 / (NUM_BLOCKS_KLT*NUM_BLOCKS_KLT));
 }
@@ -1096,16 +1105,21 @@ u8 flow_fps;
 
 double pixel_flow_x = 0.0f;
 double pixel_flow_y = 0.0f;
+double pixel_flow_x_klt = 0.0f;
+double pixel_flow_y_klt = 0.0f;
+double pixel_flow_x_sad = 0.0f;
+double pixel_flow_y_sad = 0.0f;
 double flow_compx = 0;
 double flow_compy = 0;
 float pixel_flow_x_gro_fix,pixel_flow_y_gro_fix;
 float pixel_flow_x_pix,pixel_flow_y_pix;
 u8 deg_delay=3;
-
-
+u8 qual[2];
+u8 en_klt=1;
+float k_sad=0.76;
 u8 flow_task(uint8_t * current_image,uint8_t * previous_image ,float get_time_between_images)
 {
-u8 qual;
+
 	static float pos_acc_flow[2],pos_flow[2],spd[2];	
 	static float apr[3];
 	static u8 init,led;
@@ -1113,11 +1127,17 @@ u8 qual;
 	float pixel_flow_x_t2,pixel_flow_y_t2;
 	float f_com[2];
 	float tempx,tempy,tempx1,tempy1;
-
-	//qual = compute_flow(previous_image, current_image, 0, 0,0, &tempx, &tempy , get_time_between_images);
-  qual = compute_klt(previous_image, current_image, 0, 0,0, &tempx, &tempy );
-	pixel_flow_x=tempx;
-	pixel_flow_y=tempy;
-
-return	qual;
+  //if(!en_klt)
+	qual[0] = compute_flow(previous_image, current_image, 0, 0,0, &tempx, &tempy , get_time_between_images);
+	pixel_flow_x_sad=firstOrderFilter(	tempx ,&firstOrderFilters[FLOW_LOWPASS_X],get_time_between_images);
+	pixel_flow_y_sad=firstOrderFilter(	tempy ,&firstOrderFilters[FLOW_LOWPASS_Y],get_time_between_images);
+  //else
+	qual[1] = compute_klt(previous_image, current_image, 0, 0,0, &tempx, &tempy );
+	pixel_flow_x_klt=firstOrderFilter(	-tempx ,&firstOrderFilters[ACC_LOWPASS_X],get_time_between_images);
+	pixel_flow_y_klt=firstOrderFilter(	-tempy ,&firstOrderFilters[ACC_LOWPASS_Y],get_time_between_images);
+	
+	
+	pixel_flow_x=(float)qual[0]/255*k_sad*pixel_flow_x_sad+(1-k_sad*(float)qual[0]/255)*pixel_flow_x_klt;
+	pixel_flow_y=(float)qual[0]/255*k_sad*pixel_flow_y_sad+(1-k_sad*(float)qual[0]/255)*pixel_flow_y_klt;
+return	qual[0]/2+qual[1]/2;
 }

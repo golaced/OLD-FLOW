@@ -17,8 +17,8 @@
 //нч
 ////////////////////////////////////////////////////////////////////////////////// 
 
-#define Frame_size 2
-#define USE_FPS60 1
+#define Frame_size 2.2
+#define USE_FPS60 0
 extern double X_kf_baro[3], P_kf_baro[9];
 extern float K_acc_flt,ALT_POS_SONAR;
 extern float acc_flt[3];
@@ -116,7 +116,7 @@ typedef struct
 #define ACC_ADJ_EN 									//??????????,(?????)
 
 #define OFFSET_AV_NUM 	50					//????????????
-#define FILTER_NUM 			10					//??????????
+#define FILTER_NUM 			1					//??????????
 
 #define TO_ANGLE 				0.06103f 		//0.061036 //   4000/65536  +-2000   ???
 

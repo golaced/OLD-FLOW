@@ -10,9 +10,11 @@ u16 GRAY_RGB(u8 gray);
 unsigned short read_xy_rgb(u32 *jpeg_buf_i, unsigned int x,unsigned int y,int W);
 u8 flow_task(uint8_t * current_image,uint8_t * previous_image ,float get_time_between_images);
 extern double pixel_flow_x,pixel_flow_y;
+extern double pixel_flow_x_klt,pixel_flow_y_klt;
+extern double pixel_flow_x_sad,pixel_flow_y_sad;
 extern u8 en_hist_filter;
 extern u8 en_gro_filter;
-
+extern u8 en_klt;
 typedef struct
 {
  uint64_t time_usec; ///< Timestamp (microseconds, synced to UNIX time or since system boot)

@@ -485,48 +485,7 @@ while(1)
 		if(t_mpu>0.015){
 		MPU6050_Read();
 		MPU6050_Data_Prepare( t_mpu );			
-		IMUupdate(0.5f *t_mpu,mpu6050_fc.Gyro_deg.x, mpu6050_fc.Gyro_deg.y, mpu6050_fc.Gyro_deg.z, mpu6050_fc.Acc.x, mpu6050_fc.Acc.y, mpu6050_fc.Acc.z	,&Rol_fc,&Pit_fc,&Yaw_fc);		
-		float a_br[3];
-		a_br[0] =(float) mpu6050_fc.Acc.x/4096.;//16438.;
-		a_br[1] =(float) mpu6050_fc.Acc.y/4096.;//16438.;
-		a_br[2] =(float) mpu6050_fc.Acc.z/4096.;//16438.;
-		// acc
-		float acc_temp[3];
-		acc_temp[0] = a_br[1]*reference_vr_imd_down_fc[2]  - a_br[2]*reference_vr_imd_down_fc[1] ;
-		acc_temp[1] = a_br[2]*reference_vr_imd_down_fc[0]  - a_br[0]*reference_vr_imd_down_fc[2] ;
-	  acc_temp[2] =(reference_vr_imd_down_fc[2] *a_br[2] + reference_vr_imd_down_fc[0] *a_br[0] + reference_vr_imd_down_fc[1] *a_br[1]);
-	  float acc_neo_temp[3];
-	  acc_neo_temp[0]=-acc_temp[0]*9.87;
-		acc_neo_temp[1]=acc_temp[1]*9.87;
-		acc_neo_temp[2]=(acc_temp[2]-1.0f)*9.87;		
-		acc_flt[0] += ( 1 / ( 1 + 1 / ( K_acc_flt *3.14f *t_mpu ) ) ) *( acc_neo_temp[0] - acc_flt[0] );
-	  acc_flt[1] += ( 1 / ( 1 + 1 / ( K_acc_flt *3.14f *t_mpu ) ) ) *( acc_neo_temp[1] - acc_flt[1] );
-		acc_flt[2] += ( 1 / ( 1 + 1 / ( K_acc_flt *3.14f *t_mpu ) ) ) *( acc_neo_temp[2] - acc_flt[2] );
-		float T=t_mpu;
-		double A[9]=
-		{1,       0,    0,
-		T,       1,    0,
-		-T*T/2, -T,    1};
 
-		double B[3]={T*T/2,T,0}; 
-		double H1[9]={
-		0,0,0,
-		0,1,0,
-		0,0,0}; 
-		float Sdpx=Moving_Median(0,5,flow.h_x_pix);
-		float  Accx=acc_flt[0];
-	  double Zx[3]={0,Sdpx,0};
-		KF_OLDX_NAV( X_KF_NAV[0],  P_KF_NAV[0],  Zx,  Accx, A,  B,  H1,  ga_nav,  gwa_nav, g_pos_flow,  g_spd_flow,  T);
-		float  Sdpy=Moving_Median(1,5,flow.h_y_pix);
-		float  Accy=acc_flt[1];
-		double Zy[3]={0,Sdpy,0};
-		KF_OLDX_NAV( X_KF_NAV[1],  P_KF_NAV[1],  Zy,  Accy, A,  B,  H1,  ga_nav,  gwa_nav, g_pos_flow,  g_spd_flow,  T);
-		flow.x_kf[0]=X_KF_NAV[0][0];
-		flow.x_kf[1]=X_KF_NAV[0][1];
-		flow.x_kf[2]=X_KF_NAV[0][2];
-		flow.y_kf[0]=X_KF_NAV[1][0];
-		flow.y_kf[1]=X_KF_NAV[1][1];
-		flow.y_kf[2]=X_KF_NAV[1][2];
 	  Send_FLOW();
 	 if(fc_connect_loss++>33)fc_connect=0;	
 		t_mpu=0;} 														
@@ -589,9 +548,9 @@ while(1)
 								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
 								SendBuff2[SendBuff2_cnt++]=p[i];
 						  	}else{
-							   data_per_uart1(flow.x_kf[1]*100,flow.h_x_pix*100,ALT_POS_SONAR*1000,													 
-								flow.integrated_x*100,flow.integrated_xgyro*100,flow.h_x_pix*100,															
-								flow.integrated_y*100,flow.integrated_ygyro*100,flow.h_y_pix*100,
+							   data_per_uart1(pixel_flow_x_sad*100,pixel_flow_x_klt*100,pixel_flow_x*100,													 
+								flow.integrated_x*100,1*flow.integrated_xgyro*100,0*flow.h_x_pix*100,															
+								flow.integrated_y*100,1*flow.integrated_ygyro*100,0*flow.h_y_pix*100,
 						    	Yaw_fc*10,Pit_fc*10,Rol_fc*10,0,0,0,0);			
 								}									
 					    USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);  //????1?DMA??     
