@@ -1128,13 +1128,14 @@ u8 flow_task(uint8_t * current_image,uint8_t * previous_image ,float get_time_be
 	float f_com[2];
 	float tempx,tempy,tempx1,tempy1;
   //if(!en_klt)
+	
 	qual[0] = compute_flow(previous_image, current_image, 0, 0,0, &tempx, &tempy , get_time_between_images);
 	pixel_flow_x_sad=firstOrderFilter(	tempx ,&firstOrderFilters[FLOW_LOWPASS_X],get_time_between_images);
 	pixel_flow_y_sad=firstOrderFilter(	tempy ,&firstOrderFilters[FLOW_LOWPASS_Y],get_time_between_images);
   //else
 	qual[1] = compute_klt(previous_image, current_image, 0, 0,0, &tempx, &tempy );
-	pixel_flow_x_klt=firstOrderFilter(	-tempx ,&firstOrderFilters[ACC_LOWPASS_X],get_time_between_images);
-	pixel_flow_y_klt=firstOrderFilter(	-tempy ,&firstOrderFilters[ACC_LOWPASS_Y],get_time_between_images);
+	pixel_flow_x_klt=1.45*1*firstOrderFilter(	-tempx ,&firstOrderFilters[ACC_LOWPASS_X],get_time_between_images);
+	pixel_flow_y_klt=1.45*0.75*firstOrderFilter(	-tempy ,&firstOrderFilters[ACC_LOWPASS_Y],get_time_between_images);
 	
 	
 	pixel_flow_x=(float)qual[0]/255*k_sad*pixel_flow_x_sad+(1-k_sad*(float)qual[0]/255)*pixel_flow_x_klt;
