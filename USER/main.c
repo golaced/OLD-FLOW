@@ -19,7 +19,7 @@
 #include "mymath.h"
 #include "filter.h"
 #include "ultrasonic.h"
-
+#include "iwdg.h"
 u16 ultra_distance_old;
 
 _height_st ultra;
@@ -465,7 +465,7 @@ void rgb565_test(void)
   OV5640_Special_Effects(Effect);
 	OV5640_Contrast(Contract);		//对比度0
 	OV5640_Sharpness(Shape);	//自动锐度
-	OV5640_Focus_Constant();//启动持续对焦
+	//OV5640_Focus_Constant();//启动持续对焦
 	My_DCMI_Init();			//DCMI配置
 	DCMI_DMA_Init((u32)&jpeg_buf,jpeg_buf_size,DMA_MemoryDataSize_Word,DMA_MemoryInc_Enable);//DCMI DMA配置  
  	//OV5640_ImageWin_Set(4,0,64,64);				//全尺寸缩放
@@ -476,16 +476,20 @@ void rgb565_test(void)
 	TIM3_Int_Init(680-1,8400-1);//10Khz计数,1秒钟中断一次
 	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)SendBuff2,SEND_BUF_SIZE2+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
 	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);       
-	en_guass=1;  
+	en_guass=0;  
 	en_hist_filter=1; 
 while(1)
-	{ static float t_mpu;
+	{ static float t_mpu,t_focus;
 		float dt= Get_Cycle_T(4)/1000000.0f;								//???????????	
-    t_mpu+=dt;		
+    t_mpu+=dt;
+    t_focus+=dt;
+    if(t_focus>45&&1){t_focus=0;
+		OV5640_Focus_Single	();
+		}		
 		if(t_mpu>0.015){
-		MPU6050_Read();
-		MPU6050_Data_Prepare( t_mpu );			
-
+//		MPU6050_Read();
+//		MPU6050_Data_Prepare( t_mpu );			
+   
 	  Send_FLOW();
 	 if(fc_connect_loss++>33)fc_connect=0;	
 		t_mpu=0;} 														
@@ -497,11 +501,13 @@ while(1)
 		{  
 		t_flow = Get_Cycle_T(0)/1000000.0f;								//???????????		
 
-														
+		IWDG_Feed();												
 		static u8 cnt_flow;
 		if(en_flow)
-		{ 	
+		{ 
+			
 		flow_q=flow_task(image_buffer_8bit_2, image_buffer_8bit_1,t_flow);
+			
 		for(i=0;i<64*64;i++)
 		image_buffer_8bit_1[i]=image_buffer_8bit_2[i];	
 		}	
@@ -532,9 +538,9 @@ while(1)
 		  if(en_jpg){
 				DCMI_Stop(); 		//启动传输
 				for(i=0;i<64*64;i++){//IWDG_Feed();			
-				RGB565TORGB24(i,GRAY_RGB(image_buffer_8bit_1[i]));
+				;//RGB565TORGB24(i,GRAY_RGB(image_buffer_8bit_1[i]));
 				}
- 		    Compression(64,64,jpg_q);//压缩 
+ 		   // Compression(64,64,jpg_q);//压缩 
 				DCMI_Start(); 		//启动传输
 				}
 				  static u8 uart_init;
@@ -546,11 +552,11 @@ while(1)
 									if(en_jpg){cnt_up_fig=0;
 								p=(u8*)JPG_enc_buf;
 								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
-								SendBuff2[SendBuff2_cnt++]=p[i];
+								;//SendBuff2[SendBuff2_cnt++]=p[i];
 						  	}else{
 							   data_per_uart1(pixel_flow_x_sad*100,pixel_flow_x_klt*100,pixel_flow_x*100,													 
-								flow.integrated_x*100,1*flow.integrated_xgyro*100,0*flow.h_x_pix*100,															
-								flow.integrated_y*100,1*flow.integrated_ygyro*100,0*flow.h_y_pix*100,
+								pixel_flow_y_sad*100,pixel_flow_y_klt*100,pixel_flow_y*100,				//flow.integrated_x*100,1*flow.integrated_xgyro*100,0*flow.h_x_pix*100,															
+								flow.integrated_y*100,1*flow.integrated_x*100,0*flow.h_y_pix*100,
 						    	Yaw_fc*10,Pit_fc*10,Rol_fc*10,0,0,0,0);			
 								}									
 					    USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);  //????1?DMA??     
@@ -592,6 +598,6 @@ int main(void)
 		delay_ms(200);
 		LED0=!LED0;
 	}	
-
+    IWDG_Init(4,500);
 	  rgb565_test(); 		
 }

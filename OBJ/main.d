@@ -65,5 +65,6 @@
 ..\obj\main.o: ..\HARDWARE\LED\ms5611.h
 ..\obj\main.o: ..\HARDWARE\LED\i2c_soft.h
 ..\obj\main.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+..\obj\main.o: ..\HARDWARE\LED\iwdg.h
 ..\obj\main.o: ..\HARDWARE\LED\bmp.h
 ..\obj\main.o: ..\HARDWARE\LED\flash_w25.h

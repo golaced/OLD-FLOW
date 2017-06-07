@@ -43,6 +43,24 @@ extern float flow_per_out[4];//光流最终输出为数组中 [2] [3]
 extern float k_flow_devide;//光流输出增益  按实际波形和运动情况进行调节
 extern float flow_module_offset_y,flow_module_offset_x;//光流安装偏移/m
 void flow_pertreatment_oldx( FLOW_RAD *flow_in ,float flow_height);//光流数据预处理
+
+
+
+typedef struct _flow_raw_result {
+	float x;		///< The flow in x direction
+	float y;		///< The flow in y direction
+	float quality;	///< The quality of this result. 0 = bad
+	uint8_t at_x;	///< The mid-position of the patch that was used to calculate the flow.
+	uint8_t at_y;	///< The mid-position of the patch that was used to calculate the flow.
+} flow_raw_result;
+
+typedef struct _flow_klt_image {
+	uint8_t *image;
+	uint8_t preprocessed[(64 * 64) / 2];
+	uint32_t meta;
+} flow_klt_image;
+
+uint8_t check_for_frame(uint8_t *image1,uint8_t *image2,float x_rate,float y_rate,float z_rate,float *px,float *py) ;
 #endif
 
 

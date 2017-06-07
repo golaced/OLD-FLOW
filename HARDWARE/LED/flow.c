@@ -1,9 +1,11 @@
 #include "flow.h"
 #include "filter.h"
+#include "stdlib.h"
 #define FRAME_SIZE	64
-u16 SEARCH_SIZE=4;//	4*2 ;// maximum offset to search: 4 + 1/2 pixels
-u16 TILE_SIZE=	8;//8*2;               						// x & y tile size
-u16 NUM_BLOCKS=	5;//5*2 ;// x & y number of tiles to check
+
+#define TILE_SIZE	8//8*2;               						// x & y tile size
+#define NUM_BLOCKS	5//5*2 ;// x & y number of tiles to check
+#define SEARCH_SIZE 4//	4*2 ;// maximum offset to search: 4 + 1/2 pixels
 u8 meancount_set=1;
 u16 PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD=10;//14;//100;
 u16 PARAM_BOTTOM_FLOW_VALUE_THRESHOLD=3500;//5000;
@@ -11,13 +13,13 @@ float PARAM_GYRO_COMPENSATION_THRESHOLD=0.1;
 u8 en_hist_filter=0;
 u8 en_gro_filter=0;
 
-#define  NUM_BLOCKS_KLT	5//3 8 x & y number of tiles to check  6
+#define  NUM_BLOCKS_KLT	4//3 8 x & y number of tiles to check  6
 //this are the settings for KLT based flow
 #define PYR_LVLS 2
-#define HALF_PATCH_SIZE 4       //this is half the wanted patch size minus 1  6
+#define HALF_PATCH_SIZE 3       //this is half the wanted patch size minus 1  6
 #define PATCH_SIZE (HALF_PATCH_SIZE*2+1)
 u8 meancount_set_klt=1;
-
+u8 max_iter=5;
 
 #if USE_30FPS
 u8 gray_scal=8;
@@ -1109,13 +1111,8 @@ double pixel_flow_x_klt = 0.0f;
 double pixel_flow_y_klt = 0.0f;
 double pixel_flow_x_sad = 0.0f;
 double pixel_flow_y_sad = 0.0f;
-double flow_compx = 0;
-double flow_compy = 0;
-float pixel_flow_x_gro_fix,pixel_flow_y_gro_fix;
-float pixel_flow_x_pix,pixel_flow_y_pix;
-u8 deg_delay=3;
-u8 qual[2];
 u8 en_klt=1;
+u8 qual[2];
 float k_sad=0.76;
 u8 flow_task(uint8_t * current_image,uint8_t * previous_image ,float get_time_between_images)
 {
@@ -1133,12 +1130,491 @@ u8 flow_task(uint8_t * current_image,uint8_t * previous_image ,float get_time_be
 	pixel_flow_x_sad=firstOrderFilter(	tempx ,&firstOrderFilters[FLOW_LOWPASS_X],get_time_between_images);
 	pixel_flow_y_sad=firstOrderFilter(	tempy ,&firstOrderFilters[FLOW_LOWPASS_Y],get_time_between_images);
   //else
-	qual[1] = compute_klt(previous_image, current_image, 0, 0,0, &tempx, &tempy );
+	//qual[1] = compute_klt(previous_image, current_image, 0, 0,0, &tempx, &tempy );
+	qual[1] =check_for_frame(previous_image, current_image, 0, 0,0, &tempx, &tempy );
 	pixel_flow_x_klt=1.45*1*firstOrderFilter(	-tempx ,&firstOrderFilters[ACC_LOWPASS_X],get_time_between_images);
-	pixel_flow_y_klt=1.45*0.75*firstOrderFilter(	-tempy ,&firstOrderFilters[ACC_LOWPASS_Y],get_time_between_images);
+	pixel_flow_y_klt=1.45*1*firstOrderFilter(	-tempy ,&firstOrderFilters[ACC_LOWPASS_Y],get_time_between_images);
 	
 	
 	pixel_flow_x=(float)qual[0]/255*k_sad*pixel_flow_x_sad+(1-k_sad*(float)qual[0]/255)*pixel_flow_x_klt;
 	pixel_flow_y=(float)qual[0]/255*k_sad*pixel_flow_y_sad+(1-k_sad*(float)qual[0]/255)*pixel_flow_y_klt;
 return	qual[0]/2+qual[1]/2;
+}
+
+//----------------------------------------KLT 2222---------------------------
+static flow_klt_image flow_klt_images[2] __attribute__((section(".ccm")));
+
+
+void klt_preprocess_image(uint8_t *image, flow_klt_image *klt_image) {
+	uint16_t i, j;
+
+	klt_image->image = image;
+	
+	/*
+	 * compute image pyramid for current frame
+	 * there is 188*120 bytes per buffer, we are only using 64*64 per buffer,
+	 * so just add the pyramid levels after the image
+	 */
+	//first compute the offsets in the memory for the pyramid levels
+	uint8_t *lvl_base[PYR_LVLS];
+	uint16_t frame_size = (uint16_t)(64+0.5);
+	uint16_t s = frame_size / 2;
+	uint16_t off = 0;
+	lvl_base[0] = image;
+	for (int l = 1; l < PYR_LVLS; l++)
+	{
+		lvl_base[l] = klt_image->preprocessed + off;
+		off += s*s;
+		s /= 2;
+	}
+
+	//then subsample the images consecutively, no blurring is done before the subsampling (if someone volunteers, please go ahead...)
+	for (int l = 1; l < PYR_LVLS; l++)
+	{
+		uint16_t src_size = frame_size >> (l-1);
+		uint16_t tar_size = frame_size >> l;
+		uint8_t *source = lvl_base[l-1]; //pointer to the beginning of the previous level
+		uint8_t *target = lvl_base[l];   //pointer to the beginning of the current level
+		for (j = 0; j < tar_size; j++) {
+			for (i = 0; i < tar_size; i+=2)
+			{
+				//subsample the image by 2, use the halving-add instruction to do so
+				uint32_t l1 = (__UHADD8(*((uint32_t*) &source[(j*2+0)*src_size + i*2]), *((uint32_t*) &source[(j*2+0)*src_size + i*2+1])));
+				uint32_t l2 = (__UHADD8(*((uint32_t*) &source[(j*2+1)*src_size + i*2]), *((uint32_t*) &source[(j*2+1)*src_size + i*2+1])));
+				uint32_t r = __UHADD8(l1, l2);
+
+				//the first and the third byte are the values we want to have
+				target[j*tar_size + i+0] = (uint8_t) r;
+				target[j*tar_size + i+1] = (uint8_t) (r>>16);
+			}
+		}
+	}
+}
+
+float get_flow_klt_capability() {
+	uint16_t topPyrStep = 1 << (PYR_LVLS - 1);
+  return topPyrStep * 2;
+}
+
+uint16_t compute_klt1(flow_klt_image *image1, flow_klt_image *image2, float x_rate, float y_rate, float z_rate,
+					 flow_raw_result *out, uint16_t max_out)
+{
+	/* variables */
+	uint16_t i, j;
+
+	float chi_sum = 0.0f;
+	uint8_t chicount = 0;
+
+	uint16_t max_iters = 5;
+
+	/*
+	 * compute image pyramid for current frame
+	 * there is 188*120 bytes per buffer, we are only using 64*64 per buffer,
+	 * so just add the pyramid levels after the image
+	 */
+	//first compute the offsets in the memory for the pyramid levels
+	uint8_t *lvl_base1[PYR_LVLS];
+	uint8_t *lvl_base2[PYR_LVLS];
+	uint16_t frame_size = (uint16_t)(64+0.5);
+	uint16_t s = frame_size / 2;
+	uint16_t off = 0;
+	lvl_base1[0] = image1->image;
+	lvl_base2[0] = image2->image;
+	for (int l = 1; l < PYR_LVLS; l++)
+	{
+		lvl_base1[l] = image1->preprocessed + off;
+		lvl_base2[l] = image2->preprocessed + off;
+		off += s*s;
+		s /= 2;
+	}
+
+	//need to store the flow values between pyramid level changes
+	float us[NUM_BLOCKS_KLT*NUM_BLOCKS_KLT];
+	float vs[NUM_BLOCKS_KLT*NUM_BLOCKS_KLT];
+	uint16_t is[NUM_BLOCKS_KLT*NUM_BLOCKS_KLT];
+	uint16_t js[NUM_BLOCKS_KLT*NUM_BLOCKS_KLT];
+
+	//initialize flow values with the pixel value of the previous image
+	uint16_t topPyrStep = 1 << (PYR_LVLS - 1);
+
+    /* 
+     * if the gyro change (x_rate & y_rate) is more than the maximum pixel
+     * difference that can be detected between two frames (depends on PYR_LVLS)
+     * we can't calculate the flow. So return empty flow.
+     */
+    if(fabsf(x_rate) > (float)(2 * topPyrStep) || fabsf(y_rate) > (float)(2 * topPyrStep)){
+        return 0;
+    }
+
+	uint16_t pixStep = frame_size / (NUM_BLOCKS_KLT + 1);
+	uint16_t pixLo = pixStep;
+	/* align with topPyrStep */
+	pixStep = ((uint16_t)(pixStep                 )) & ~((uint16_t)(topPyrStep - 1));	// round down
+	pixLo   = ((uint16_t)(pixLo + (topPyrStep - 1))) & ~((uint16_t)(topPyrStep - 1));	// round up
+	//uint16_t pixHi = pixLo + pixStep * (NUM_BLOCK_KLT - 1);
+
+	j = pixLo;
+	for (int y = 0; y < NUM_BLOCKS_KLT; y++, j += pixStep)
+	{
+		i = pixLo;
+		for (int x = 0; x < NUM_BLOCKS_KLT; x++, i += pixStep)
+		{
+			uint16_t idx = y*NUM_BLOCKS_KLT+x;
+			if (0){//[PARAM_KLT_GYRO_ASSIST]
+				/* use the gyro measurement to guess the initial position in the new image */
+				us[idx] = i + x_rate; //position in new image at level 0
+				vs[idx] = j + y_rate;
+				if ((int16_t)us[idx] < HALF_PATCH_SIZE) 				 us[idx] = HALF_PATCH_SIZE;
+				if ((int16_t)us[idx] > frame_size - HALF_PATCH_SIZE - 1) us[idx] = frame_size - HALF_PATCH_SIZE - 1;
+				if ((int16_t)vs[idx] < HALF_PATCH_SIZE) 				 vs[idx] = HALF_PATCH_SIZE;
+				if ((int16_t)vs[idx] > frame_size - HALF_PATCH_SIZE - 1) vs[idx] = frame_size - HALF_PATCH_SIZE - 1;
+			} else {
+				us[idx] = i; //position in new image at level 0
+				vs[idx] = j;
+			}
+			is[idx] = i;	//position in previous image at level 0
+			js[idx] = j;
+			/* init output vector */
+			if (idx < max_out) {
+				out[idx].x = 0;
+				out[idx].y = 0;
+				out[idx].quality = 0;
+				out[idx].at_x = i;
+				out[idx].at_y = j;
+			}
+		}
+	}
+
+	//for all pyramid levels, start from the smallest level
+	for (int l = PYR_LVLS-1; l >= 0; l--)
+	{
+		//iterate over all patterns
+		for (int k = 0; k < NUM_BLOCKS_KLT*NUM_BLOCKS_KLT; k++)
+		{
+			i = is[k] >> l;  //reference pixel for the current level
+			j = js[k] >> l;
+
+			uint16_t iwidth = frame_size >> l;
+			uint8_t *base1 = lvl_base1[l] + j * iwidth + i;
+
+			float JTJ[4];   //the 2x2 Hessian
+			JTJ[0] = 0;
+			JTJ[1] = 0;
+			JTJ[2] = 0;
+			JTJ[3] = 0;
+			int c = 0;
+
+			//compute jacobians and the hessian for the patch at the current location
+			uint8_t min_val = 255;
+			uint8_t max_val = 0;
+			for (int8_t jj = -HALF_PATCH_SIZE; jj <= HALF_PATCH_SIZE; jj++)
+			{
+				uint8_t *left = base1 + jj*iwidth;
+				for (int8_t ii = -HALF_PATCH_SIZE; ii <= HALF_PATCH_SIZE; ii++)
+				{
+					uint8_t val = left[ii];
+					if (val > max_val) max_val = val;
+					if (val < min_val) min_val = val;
+					const float jx = ((uint16_t)left[ii+1] - (uint16_t)left[ii-1]) * 0.5f;
+					const float jy = ((uint16_t)left[ii+iwidth] - (uint16_t)left[ii-iwidth]) * 0.5f;
+					Jx[c] = jx;
+					Jy[c] = jy;
+					JTJ[0] += jx*jx;
+					JTJ[1] += jx*jy;
+					JTJ[2] += jx*jy;
+					JTJ[3] += jy*jy;
+					c++;
+				}
+			}
+
+			//compute inverse of hessian
+			float det = (JTJ[0]*JTJ[3]-JTJ[1]*JTJ[2]);
+			float dyn_range = (float)(max_val - min_val) + 1;
+			float trace = (JTJ[0] + JTJ[3]);
+			float M_c = det - 0.06 * trace * trace;//PARAM_ALGORITHM_CORNER_KAPPA
+			if (fabsf(det) > 90 * dyn_range && M_c > 0.0f)//PARAM_KLT_DET_VALUE_MIN
+			{
+				float detinv = 1.f / det;
+				float JTJinv[4];
+				JTJinv[0] = detinv * JTJ[3];
+				JTJinv[1] = detinv * -JTJ[1];
+				JTJinv[2] = detinv * -JTJ[2];
+				JTJinv[3] = detinv * JTJ[0];
+
+				// us and vs store the sample position in level 0 pixel coordinates
+				float u = (us[k] / (1<<l));
+				float v = (vs[k] / (1<<l));
+
+				float chi_sq_previous = 0.f;
+
+				u8 result_good = 1;
+
+				//Now do some Gauss-Newton iterations for flow
+				for (int iters = 0; iters < max_iters; iters++)
+				{
+					float JTe_x = 0;  //accumulators for Jac transposed times error
+					float JTe_y = 0;
+
+					uint8_t *base2 = lvl_base2[l] + (uint16_t)v * iwidth + (uint16_t)u;
+
+					//extract bilinearly filtered pixel values for the current location in image2
+					float dX = u - floorf(u);
+					float dY = v - floorf(v);
+					float fMixTL = (1.f - dX) * (1.f - dY);
+					float fMixTR = (dX) * (1.f - dY);
+					float fMixBL = (1.f - dX) * (dY);
+					float fMixBR = (dX) * (dY);
+
+					float chi_sq = 0.f;
+					c = 0;
+					for (int8_t jj = -HALF_PATCH_SIZE; jj <= HALF_PATCH_SIZE; jj++)
+					{
+						uint8_t *left1 = base1 + jj*iwidth;
+						uint8_t *left2 = base2 + jj*iwidth;
+
+						for (int8_t ii = -HALF_PATCH_SIZE; ii <= HALF_PATCH_SIZE; ii++)
+						{
+							float fPixel = fMixTL * left2[ii] + fMixTR * left2[ii+1] + fMixBL * left2[ii+iwidth] + fMixBR * left2[ii+iwidth+1];
+							float fDiff = fPixel - left1[ii];
+							JTe_x += fDiff * Jx[c];
+							JTe_y += fDiff * Jy[c];
+							chi_sq += fDiff*fDiff;
+							c++;
+						}
+					}
+
+					//only update if the error got smaller
+					if (iters == 0 || chi_sq_previous > chi_sq)
+					{
+						//compute update and shift current position accordingly
+						float updx = JTJinv[0]*JTe_x + JTJinv[1]*JTe_y;
+						float updy = JTJinv[2]*JTe_x + JTJinv[3]*JTe_y;
+						float new_u = u-updx;
+						float new_v = v-updy;
+
+						//check if we drifted outside the image
+						if (((int16_t)new_u < HALF_PATCH_SIZE) || (int16_t)new_u > (iwidth-HALF_PATCH_SIZE-1) || ((int16_t)new_v < HALF_PATCH_SIZE) || (int16_t)new_v > (iwidth-HALF_PATCH_SIZE-1))
+						{
+							result_good = 0;
+							break;
+						}
+						else
+						{
+							u = new_u;
+							v = new_v;
+						}
+					}
+					else
+					{
+						chi_sum += chi_sq_previous;
+						chicount++;
+						break;
+					}
+					chi_sq_previous = chi_sq;
+				}
+				if (l > 0)
+				{
+					// TODO: evaluate recording failure at each level to calculate a final quality value
+					us[k] = u * (1<<l);
+					vs[k] = v * (1<<l);
+				}
+				else  //for the last level compute the actual flow in pixels
+				{
+					if (result_good && k < max_out) {
+						if (0) {
+							/* compute flow and compensate gyro */
+							out[k].x = u - i - x_rate;
+							out[k].y = v - j - y_rate;
+						} else {
+							out[k].x = u - i;
+							out[k].y = v - j;
+						}
+						if (fabsf(out[k].x) < (float)(2 * topPyrStep) &&
+						    fabsf(out[k].y) < (float)(2 * topPyrStep)) {
+							out[k].quality = 1.0f;
+						} else {
+							/* drifted too far */
+							out[k].x = 0;
+							out[k].y = 0;
+							out[k].quality = 0;
+						}
+					}
+				}
+			}
+		}
+	}
+	return NUM_BLOCKS_KLT * NUM_BLOCKS_KLT < max_out ? NUM_BLOCKS_KLT * NUM_BLOCKS_KLT : max_out;
+}
+
+struct flow_res_dim_value {
+	float value;
+	uint16_t idx;
+};
+
+static int flow_res_dim_value_compare(const void* elem1, const void* elem2)
+{
+	float v1 = ((const struct flow_res_dim_value *)elem1)->value;
+	float v2 = ((const struct flow_res_dim_value *)elem2)->value;
+    if(v1 < v2)
+        return -1;
+    return v1 > v2;
+}
+uint16_t flow_rslt_count = 0;
+uint8_t flow_extract_result(flow_raw_result *in, uint16_t result_count, float *px_flow_x, float *px_flow_y,
+				float accuracy_p, float accuracy_px)
+{
+	/* extract all valid results: */
+	struct flow_res_dim_value xvalues[30];
+	struct flow_res_dim_value yvalues[30];
+	uint16_t valid_c = 0;
+	for (int i = 0; i < result_count; i++) {
+		if (in[i].quality > 0) {
+			xvalues[valid_c].value = in[i].x;
+			xvalues[valid_c].idx   = i;
+			yvalues[valid_c].value = in[i].y;
+			yvalues[valid_c].idx   = i;
+			valid_c++;
+		}
+	}
+	if (valid_c < (result_count + 2) / 3 || valid_c < 3) {
+		*px_flow_x = 0;
+		*px_flow_y = 0;
+		return 0;
+	}
+	struct flow_res_dim_value *axes[2] = {xvalues, yvalues};
+	float *output[2] = {px_flow_x, px_flow_y};
+	float max_spread_val[2] = {0};
+	float spread_val[2] = {0};
+	uint16_t total_avg_c = 0;
+	for (int i = 0; i < 2; ++i) {
+		struct flow_res_dim_value *axis = axes[i];
+		/* sort them */
+		qsort(axis, valid_c, sizeof(struct flow_res_dim_value), flow_res_dim_value_compare);
+		spread_val[i] = axis[valid_c * 3 / 4].value - axis[valid_c / 4].value;
+		/* start with one element */
+		uint16_t s = valid_c / 2;
+		uint16_t e = valid_c / 2 + 1;
+		uint16_t s_res;
+		uint16_t e_res;
+		float avg_sum = axis[s].value;
+		uint16_t avg_c = 1;
+		float avg;
+		while (1) {
+			s_res = s;
+			e_res = e;
+			/* calculate average and maximum spread to throw away outliers */
+			avg = avg_sum / avg_c;
+			float max_spread = fabsf(avg) * accuracy_p;
+			max_spread = accuracy_px * accuracy_px / (accuracy_px + max_spread) + max_spread;
+			max_spread_val[i] = max_spread;
+			/* decide on which side to add new data-point (to remain centered in the sorted set) */
+			if (s > valid_c - e && s > 0) {
+				s--;
+				avg_sum += axis[s].value;
+			} else if (e < valid_c) {
+				e++;
+				avg_sum += axis[e - 1].value;
+			} else {
+				break;
+			}
+			avg_c++;
+			/* check maximum spread */
+			if (axis[e - 1].value - axis[s].value > max_spread) break;
+			/* its good. continue .. */
+		}
+		if (e_res - s_res > 1) {
+			/* we have a result */
+			*output[i] = avg;
+			total_avg_c += e_res - s_res;
+		} else {
+			*px_flow_x = 0;
+			*px_flow_y = 0;
+			return 0;
+		}
+	}
+
+	total_avg_c = total_avg_c / 2;
+	return (total_avg_c * 255) / result_count;
+}
+
+uint8_t check_for_frame(uint8_t *image1,uint8_t *image2,float x_rate,float y_rate,float z_rate,float *px,float *py) {
+	/* new gyroscope data */		
+		u8 use_klt = 1;
+		
+		flow_klt_image *klt_images[2] ;
+		
+			/* make sure that the new images get the correct treatment */
+			/* this algorithm will still work if both images are new */
+			int i;
+			u8 used_klt_image[2] = {0, 0};
+			
+			for (i = 0; i < 2; ++i) {
+
+					// the image has the preprocessing already applied.
+					if (use_klt) {
+						int j;
+						/* find the klt image that matches: */
+						for (j = 0; j < 2; ++j) {
+							if (0){//flow_klt_images[j].meta == frames[i]->frame_number) {
+								used_klt_image[j] = 1;
+								klt_images[i] = &flow_klt_images[j];
+							}
+						}
+					}
+				
+			}
+			
+			if (use_klt) {
+				/* only for KLT: */
+				/* preprocess the images if they are not yet preprocessed */
+				for (i = 0; i < 2; ++i) {
+					if (klt_images[i] == 0) {
+						// need processing. find unused KLT image:
+						int j;
+						for (j = 0; j < 2; ++j) {
+							if (!used_klt_image[j]) {
+								used_klt_image[j] = 1;
+								klt_images[i] = &flow_klt_images[j];
+								break;
+							}
+						}
+						if(i==1)
+						klt_preprocess_image(image1, klt_images[i]);
+						else
+						klt_preprocess_image(image2, klt_images[i]);
+					}
+				}
+			}
+		
+		
+//		float frame_dt   = calculate_time_delta_us(frames[0]->timestamp, frames[1]->timestamp)           * 0.000001f;
+//		float dropped_dt = calculate_time_delta_us(frames[1]->timestamp, last_processed_frame_timestamp) * 0.000001f;
+//		last_processed_frame_timestamp = frames[0]->timestamp;
+
+		/* calculate focal_length in pixel */
+		//const float focal_length_px = 15;//(global_data.param[PARAM_FOCAL_LENGTH_MM]) / 
+									 // ((float)frames[0]->param.p.binning * 0.006f);	// pixel-size: 6um
+	  float focal_length_px = (16) / (4.0f * 6.0f) * 1000.0f;
+		/* extract the raw flow from the images: */
+		flow_raw_result flow_rslt[32];
+
+		/* make sure both images are taken with same binning mode: */
+
+	  flow_rslt_count =  compute_klt1(klt_images[1], klt_images[0],0, 0, 0, flow_rslt, sizeof(flow_rslt) / sizeof(flow_rslt[0]));
+
+		/* determine velocity capability: */
+		float flow_mv_cap;
+		flow_mv_cap = get_flow_klt_capability();
+
+
+		/* calculate flow value from the raw results */
+		float pixel_flow_x;
+		float pixel_flow_y;
+		float outlier_threshold = 0.015;//global_data.param[PARAM_ALGORITHM_OUTLIER_THR_RATIO];
+		float min_outlier_threshold = 0;
+
+		min_outlier_threshold = 0.2;//global_data.param[PARAM_ALGORITHM_OUTLIER_THR_KLT];
+		
+		return  flow_extract_result(flow_rslt, flow_rslt_count, px, py, outlier_threshold,  min_outlier_threshold);
+
 }

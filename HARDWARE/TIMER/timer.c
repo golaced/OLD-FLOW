@@ -61,11 +61,11 @@ float acc_flt[3];
 float t_mems;
 u8 bmp_rx;
 void TIM3_IRQHandler(void)
-{static u16 cnt_1s,cnt_20ms;
+{static float cnt_1s,cnt_20ms;
 	if(TIM_GetITStatus(TIM3,TIM_IT_Update)==SET) //Òç³öÖÐ¶Ï
 	{ float t_mems = Get_Cycle_T(2)/1000000.0f;								//???????????
-    cnt_1s+=t_mems*1000000;		
-		if(cnt_1s++>10){cnt_1s=0;
+    cnt_1s+=t_mems;		
+		if(cnt_1s++>1){cnt_1s=0;
 		ov_frame_rx=ov_frame;
 		ov_frame=0;
 	  }

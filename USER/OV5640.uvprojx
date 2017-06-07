@@ -462,6 +462,11 @@
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\TIMER\dma.c</FilePath>
             </File>
+            <File>
+              <FileName>dog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\LED\dog.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -522,45 +527,10 @@
               <FileType>1</FileType>
               <FilePath>..\FWLIB\src\stm32f4xx_spi.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>JPG</GroupName>
-          <Files>
             <File>
-              <FileName>dct.c</FileName>
+              <FileName>stm32f4xx_iwdg.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\USART2\dct.c</FilePath>
-            </File>
-            <File>
-              <FileName>jcapi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\USART2\jcapi.c</FilePath>
-            </File>
-            <File>
-              <FileName>jchuff.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\USART2\jchuff.c</FilePath>
-            </File>
-            <File>
-              <FileName>jcint.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\USART2\jcint.c</FilePath>
-            </File>
-            <File>
-              <FileName>jcmarker.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\USART2\jcmarker.c</FilePath>
-            </File>
-            <File>
-              <FileName>jpg_code.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\USART2\jpg_code.c</FilePath>
-            </File>
-            <File>
-              <FileName>jutility.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\USART2\jutility.c</FilePath>
+              <FilePath>..\FWLIB\src\stm32f4xx_iwdg.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -568,29 +538,9 @@
           <GroupName>MEMS</GroupName>
           <Files>
             <File>
-              <FileName>iic_hml.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\iic_hml.c</FilePath>
-            </File>
-            <File>
               <FileName>i2c_soft.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\i2c_soft.c</FilePath>
-            </File>
-            <File>
-              <FileName>ak8975.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\ak8975.c</FilePath>
-            </File>
-            <File>
-              <FileName>mpu6050.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\mpu6050.c</FilePath>
-            </File>
-            <File>
-              <FileName>bmp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\bmp.c</FilePath>
             </File>
             <File>
               <FileName>mymath.c</FileName>
@@ -603,24 +553,9 @@
               <FilePath>..\HARDWARE\LED\filter.c</FilePath>
             </File>
             <File>
-              <FileName>imu.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\imu.c</FilePath>
-            </File>
-            <File>
               <FileName>flash_w25.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\flash_w25.c</FilePath>
-            </File>
-            <File>
-              <FileName>kf_oldx.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\HARDWARE\LED\kf_oldx.lib</FilePath>
-            </File>
-            <File>
-              <FileName>KF_OLDX_NAV.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\KEY\KF_OLDX_NAV.c</FilePath>
             </File>
             <File>
               <FileName>flow_s.c</FileName>
@@ -631,6 +566,11 @@
               <FileName>ultrasonic.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\ultrasonic.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpu6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\LED\mpu6050.c</FilePath>
             </File>
           </Files>
         </Group>
