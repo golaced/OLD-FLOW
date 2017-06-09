@@ -147,6 +147,11 @@ void OV5640_RGB565_Mode(void)
 	{
 		OV5640_WR_Reg(ov5640_rgb565_reg_tbl60[i][0],ov5640_rgb565_reg_tbl60[i][1]); 
 	} 
+//	for(i=0;i<(sizeof(ov5640_rgb565_reg_tbl_cif)/4);i++)
+//	{
+//		OV5640_WR_Reg(ov5640_rgb565_reg_tbl_cif[i][0],ov5640_rgb565_reg_tbl_cif[i][1]); 
+//	} 
+	
 	#else
 	for(i=0;i<(sizeof(ov5640_rgb565_reg_tbl)/4);i++)
 	{

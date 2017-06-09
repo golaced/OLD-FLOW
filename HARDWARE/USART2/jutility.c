@@ -16,7 +16,7 @@
 #include "stdlib.h"
 #include <string.h>
 #include "jinclude.h"
-
+#if EN_JPG
 void jutl_write_byte(UINT8 c, unsigned char *f);
 void jutl_zigzag_sort (DCTBLOCK dptr);
 void jutl_cc_rgb2ycc(JSAMPLE *data, int num);
@@ -74,3 +74,4 @@ void jutl_write_byte(UINT8 c,unsigned char *f)
     pt_buf++;
 }
 
+#endif

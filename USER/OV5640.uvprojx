@@ -553,24 +553,49 @@
               <FilePath>..\HARDWARE\LED\filter.c</FilePath>
             </File>
             <File>
-              <FileName>flash_w25.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\flash_w25.c</FilePath>
-            </File>
-            <File>
               <FileName>flow_s.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\flow_s.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>JPG</GroupName>
+          <Files>
             <File>
-              <FileName>ultrasonic.c</FileName>
+              <FileName>dct.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\ultrasonic.c</FilePath>
+              <FilePath>..\HARDWARE\USART2\dct.c</FilePath>
             </File>
             <File>
-              <FileName>mpu6050.c</FileName>
+              <FileName>jchuff.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\LED\mpu6050.c</FilePath>
+              <FilePath>..\HARDWARE\USART2\jchuff.c</FilePath>
+            </File>
+            <File>
+              <FileName>jcapi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\USART2\jcapi.c</FilePath>
+            </File>
+            <File>
+              <FileName>jcint.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\USART2\jcint.c</FilePath>
+            </File>
+            <File>
+              <FileName>jcmarker.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\USART2\jcmarker.c</FilePath>
+            </File>
+            <File>
+              <FileName>jpg_code.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\USART2\jpg_code.c</FilePath>
+            </File>
+            <File>
+              <FileName>jutility.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\USART2\jutility.c</FilePath>
             </File>
           </Files>
         </Group>

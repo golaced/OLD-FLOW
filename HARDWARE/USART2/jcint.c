@@ -17,7 +17,7 @@
 #include "jinclude.h"
 #include "jcint.h"
 #include "string.h"
-
+#if EN_JPG
 extern JQUANT_TBL  JQUANT_TBL_2[2];
 extern JHUFF_TBL  JHUFF_TBL_4[4];
 extern void jutl_cc_rgb2ycc(JSAMPLE *data, int num);
@@ -394,4 +394,4 @@ void jint_calc_huff_tbl(JHUFF_TBL *htblptr)
   } while(k<lastk);
 }
 
-
+#endif

@@ -17,7 +17,7 @@
 #include "jinclude.h"
 #include "jcapi.h"
 #include "jcint.h"
-
+#if EN_JPG
   unsigned char dcttab[3][512];
   unsigned char inbuf_buf[IN_BUF];
 
@@ -237,4 +237,4 @@ void jpeg_finish_compress (jpeg_compress_info *cinfo)
   /* identify compress finish */
   cinfo->state = JC_FINISH;
 }
-
+#endif

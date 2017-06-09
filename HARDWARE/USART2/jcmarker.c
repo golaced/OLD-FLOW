@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "jinclude.h"
 #include "jcint.h"
-
+#if EN_JPG
 extern void jutl_write_byte(UINT8 c, unsigned char *f);
 typedef enum 
 {
@@ -231,5 +231,5 @@ void jmkr_write_end(jpeg_compress_info *cinfo)
 {
   jmkr_write_image_end(cinfo);
 }
-
+#endif
 

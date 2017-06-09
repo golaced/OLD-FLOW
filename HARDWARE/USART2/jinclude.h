@@ -2,7 +2,7 @@
 #define JINCLUDE_H
 
 #include <stdio.h>
-
+#define EN_JPG 1
 /* define basic type 
  */
 typedef int   INT32;

@@ -3,6 +3,7 @@
 #include "stm32f4xx.h"	
 #include "delay.h"	
 #include "usart.h"
+#if EN_JPG
 unsigned char JPG_enc_buf[JUGG_BUF];//jpeg Êä³ö
 volatile unsigned int pt_buf;//»º³åÇøÖ¸Õë
 
@@ -49,3 +50,4 @@ void RGB565TORGB24(u32 num,u16 Pixel)
     inbuf_buf[Addr+1]<<=2; 
     inbuf_buf[Addr+2]<<=3;  
 }
+#endif

@@ -63,14 +63,13 @@ u8 bmp_rx;
 void TIM3_IRQHandler(void)
 {static float cnt_1s,cnt_20ms;
 	if(TIM_GetITStatus(TIM3,TIM_IT_Update)==SET) //溢出中断
-	{ float t_mems = Get_Cycle_T(2)/1000000.0f;								//???????????
+	{ float t_mems = Get_Cycle_T(8)/1000000.0f;								//???????????
     cnt_1s+=t_mems;		
-		if(cnt_1s++>1){cnt_1s=0;
+		//if(cnt_1s++>1){cnt_1s=0;
 		ov_frame_rx=ov_frame;
 		ov_frame=0;
-	  }
-    if(!sonar_fc||!fc_connect)
-    Ultra_Duty();
+	  //}
+    
 
 	}
 	TIM_ClearITPendingBit(TIM3,TIM_IT_Update);  //清除中断标志位

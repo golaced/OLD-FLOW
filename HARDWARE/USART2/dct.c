@@ -11,7 +11,7 @@
                     DCT¿Î…¢”‡œ“±‰ªª
 *************************************************************************/
 #include "jinclude.h"
-
+#if EN_JPG
 void fdct_8x8(DCTVAL *in);
 void dsp_fdct_8x8(short *dct_data, unsigned num_fdcts);
 
@@ -277,4 +277,4 @@ void dsp_fdct_8x8(short *dct_data, unsigned num_fdcts)
   return;
 }
 
-
+#endif

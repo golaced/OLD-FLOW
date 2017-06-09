@@ -20,247 +20,6 @@
 #include "filter.h"
 #include "ultrasonic.h"
 #include "iwdg.h"
-u16 ultra_distance_old;
-
-_height_st ultra;
-
-u8 measure_num=8;
-u16 Distance[50]  = {0};
-float sonar_filter_oldx(float in) 
-{
-    u8 IS_success =1;
-    u16 Distance1 = 0;
-    u16 MAX_error1 = 0;
-    u8 MAX_error_targe = 0;
-    u8 count = 0;
-    u8 i =0;
-    u8 j =0;
-    u8 num =0; 
-    Distance[measure_num-1]=in;
-    for(i=0;i<measure_num-1;i++)
-		{
-		 Distance[i]=Distance[i+1]; 
-		}
-        for(i = 0 ; i < measure_num-1 ; i++)
-        {
-
-            for(j = 0 ; j < measure_num-1-i; j++)       
-            {
-                if(Distance[j] > Distance[j+1] )
-                {
-                    Distance1 = Distance[j];
-                    Distance[j] =  Distance[j+1];
-                    Distance[j+1] = Distance1; 
-                }
-            }
-
-        }
-        MAX_error1 = Distance[1] - Distance[0];
-        for(i = 1 ; i < measure_num-1 ; i++)
-        {
-            if(MAX_error1 < Distance[i+1] - Distance[i] )//如：1 2 3 4 5    8 9 10    MAX_error_targe=4;
-            {
-                MAX_error1 =  Distance[i+1] - Distance[i];//最大差距
-                MAX_error_targe = i;  //记下最大差距值的位置（这组数中的位置）
-            }
-        }
-        float UltrasonicWave_Distance1=0;
-        if(MAX_error_targe+1 > (measure_num+1)/2) //前部分有效  1 2 3 4 5    8 9 10  (如果位于中间，后半部优先)
-        {
-            for(i = 0 ; i <= MAX_error_targe ; i++)
-            {
-                UltrasonicWave_Distance1 += Distance[i];
-            }
-            UltrasonicWave_Distance1 /= (MAX_error_targe+1);//取平均
-        }
-        else  //后部分有效  1 2 3   7 8 9 10
-        {
-             for(i = MAX_error_targe + 1 ; i < measure_num ; i++)
-            {
-                UltrasonicWave_Distance1 += Distance[i];
-            }
-            UltrasonicWave_Distance1 /= (measure_num - MAX_error_targe -1);//取平均
-        }
-    return  (float)UltrasonicWave_Distance1/1000.; //转化为米为单位的浮点数
-}
-
-
-static float sonar_values[3] = { 0.0f };
-static unsigned insert_index = 0;
-
-static void sonar_bubble_sort(float sonar_values[], unsigned n);
-
-void sonar_bubble_sort(float sonar_values[], unsigned n)
-{
-	float t;
-
-	for (unsigned i = 0; i < (n - 1); i++) {
-		for (unsigned j = 0; j < (n - i - 1); j++) {
-			if (sonar_values[j] > sonar_values[j+1]) {
-				/* swap two values */
-				t = sonar_values[j];
-				sonar_values[j] = sonar_values[j + 1];
-				sonar_values[j + 1] = t;
-			}
-		}
-	}
-}
-
-float insert_sonar_value_and_get_mode_value(float insert)
-{
-	const unsigned sonar_count = sizeof(sonar_values) / sizeof(sonar_values[0]);
-
-	sonar_values[insert_index] = insert;
-	insert_index++;
-	if (insert_index == sonar_count) {
-		insert_index = 0;
-	}
-
-	/* sort and return mode */
-
-	/* copy ring buffer */
-	float sonar_temp[sonar_count];
-	memcpy(sonar_temp, sonar_values, sizeof(sonar_values));
-
-	sonar_bubble_sort(sonar_temp, sonar_count);
-
-	/* the center element represents the mode after sorting */
-	return sonar_temp[sonar_count / 2];
-}
-
-
-void Ultra_Get(u8 com_data)
-{
-	static u8 ultra_tmp;
-	
-	if( ultra_start_f == 1 )
-	{
-		ultra_tmp = com_data;
-		ultra_start_f = 2;
-	}
-	else if( ultra_start_f == 2 )
-	{
-		ultra.height =  ((ultra_tmp<<8) + com_data);
-		
-		if(ultra.height < 5000) // 5????????,????10?.
-		{
-			//ultra.relative_height =sonar_filter_oldx(ultra.height);
-			ultra.relative_height =insert_sonar_value_and_get_mode_value((float)ultra.height/1000.);
-			ultra.measure_ok = 1;		
-		}
-		else
-		{
-			ultra.measure_ok = 2; //?????
-		}
-		ultra_start_f = 0;
-	}
-	ultra.measure_ot_cnt = 0; //??????(??)
-	ultra.h_delta = ultra.relative_height - ultra_distance_old;
-	ultra_distance_old = ultra.relative_height;
-}
-
-
-
-
-#define Kp 0.3f                	// proportional gain governs rate of convergence to accelerometer/magnetometer
-#define Ki 0.001f                	// 0.001  integral gain governs rate of convergence of gyroscope biases
-#define IMU_INTEGRAL_LIM  ( 2.0f *ANGLE_TO_RADIAN )
-#define NORM_ACC_LPF_HZ 10  		//(Hz)
-#define REF_ERR_LPF_HZ  1				//(Hz)
-xyz_f_t reference_v;
-ref_t 	ref;
-float reference_vr_imd_down[3],reference_vr[3];
-	
-float Rol_fc,Pit_fc,Yaw_fc;    				//???
-float ref_q_imd_down_fc[4] ;
-float reference_vr_imd_down_fc[3];
-float ref_q[4] = {1,0,0,0},q_nav[4],ref_q_imd_down[4];
-float norm_acc,norm_q;
-float norm_acc_lpf;
-
-float mag_norm ,mag_norm_xyz ;
-
-xyz_f_t mag_sim_3d,acc_3d_hg,acc_ng,acc_ng_offset;
-
-void IMUupdate(float half_T,float gx, float gy, float gz, float ax, float ay, float az,float *rol,float *pit,float *yaw) 
-{	static u8 init;
-	float ref_err_lpf_hz;
-	static float yaw_correct;
-	float mag_norm_tmp;
-	static xyz_f_t mag_tmp;
-	
-	if(!init)
-	{
-	init=1;
-	ref.err_tmp.x=ref.err_tmp.y=ref.err_tmp.z=0;
-	ref.err.x=ref.err.y=ref.err.z=0;
-	ref.err_lpf.x=ref.err_lpf.y=ref.err_lpf.z=0;
-	ref.err_Int.x=ref.err_Int.y=ref.err_Int.z=0;
-	ref.g.x=ref.g.y=ref.g.z=0;
-	}
-	reference_v.x = 2*(ref_q[1]*ref_q[3] - ref_q[0]*ref_q[2]);
-	reference_v.y = 2*(ref_q[0]*ref_q[1] + ref_q[2]*ref_q[3]);
-	reference_v.z = 1 - 2*(ref_q[1]*ref_q[1] + ref_q[2]*ref_q[2]);//ref_q[0]*ref_q[0] - ref_q[1]*ref_q[1] - ref_q[2]*ref_q[2] + ref_q[3]*ref_q[3];
-
-	norm_acc = my_sqrt(ax*ax + ay*ay + az*az);   
-  if(norm_acc==0)
-		norm_acc=1;
-
-	if(ABS(ax)<4400 && ABS(ay)<4400 && ABS(az)<4400 )
-	{	
-		//???????????????
-		ax = ax / norm_acc;//4096.0f;
-		ay = ay / norm_acc;//4096.0f;
-		az = az / norm_acc;//4096.0f; 
-		
-		if( 3800 < norm_acc && norm_acc < 4400 )
-		{
-			ref.err_tmp.x = ay*reference_v.z - az*reference_v.y;
-			ref.err_tmp.y = az*reference_v.x - ax*reference_v.z;
-			ref_err_lpf_hz = REF_ERR_LPF_HZ *(6.28f *half_T);
-			ref.err_lpf.x += ref_err_lpf_hz *( ref.err_tmp.x  - ref.err_lpf.x );
-			ref.err_lpf.y += ref_err_lpf_hz *( ref.err_tmp.y  - ref.err_lpf.y );
-			ref.err.x = ref.err_lpf.x;//
-			ref.err.y = ref.err_lpf.y;//
-		}
-	}
-	else
-	{
-		ref.err.x = 0; 
-		ref.err.y = 0  ;
-	}
-	ref.err_Int.x += ref.err.x *Ki *2 *half_T ;
-	ref.err_Int.y += ref.err.y *Ki *2 *half_T ;
-	ref.err_Int.z += ref.err.z *Ki *2 *half_T ;
-	ref.err_Int.x = LIMIT(ref.err_Int.x, - IMU_INTEGRAL_LIM ,IMU_INTEGRAL_LIM );
-	ref.err_Int.y = LIMIT(ref.err_Int.y, - IMU_INTEGRAL_LIM ,IMU_INTEGRAL_LIM );
-	ref.err_Int.z = LIMIT(ref.err_Int.z, - IMU_INTEGRAL_LIM ,IMU_INTEGRAL_LIM );
-	yaw_correct = 0; //????,????,???????????
-	ref.g.x = (gx - reference_v.x *yaw_correct) *ANGLE_TO_RADIAN + ( Kp*(ref.err.x + ref.err_Int.x) ) ;     //IN RADIAN
-	ref.g.y = (gy - reference_v.y *yaw_correct) *ANGLE_TO_RADIAN + ( Kp*(ref.err.y + ref.err_Int.y) ) ;		  //IN RADIAN
-	ref.g.z = (gz - reference_v.z *yaw_correct) *ANGLE_TO_RADIAN;
-	// integrate quaternion rate and normalise
-	ref_q[0] = ref_q[0] +(-ref_q[1]*ref.g.x - ref_q[2]*ref.g.y - ref_q[3]*ref.g.z)*half_T;
-	ref_q[1] = ref_q[1] + (ref_q[0]*ref.g.x + ref_q[2]*ref.g.z - ref_q[3]*ref.g.y)*half_T;
-	ref_q[2] = ref_q[2] + (ref_q[0]*ref.g.y - ref_q[1]*ref.g.z + ref_q[3]*ref.g.x)*half_T;
-	ref_q[3] = ref_q[3] + (ref_q[0]*ref.g.z + ref_q[1]*ref.g.y - ref_q[2]*ref.g.x)*half_T;  
-	/* ?????? normalise quaternion */
-	norm_q = my_sqrt(ref_q[0]*ref_q[0] + ref_q[1]*ref_q[1] + ref_q[2]*ref_q[2] + ref_q[3]*ref_q[3]);
-	if(norm_q==0)
-		norm_q=1;
-	ref_q_imd_down_fc[0]=ref_q[0] = ref_q[0] / norm_q;
-	ref_q_imd_down_fc[1]=ref_q[1] = ref_q[1] / norm_q;
-	ref_q_imd_down_fc[2]=ref_q[2] = ref_q[2] / norm_q;
-	ref_q_imd_down_fc[3]=ref_q[3] = ref_q[3] / norm_q;
-	
-  reference_vr_imd_down_fc[0] = 2*(ref_q_imd_down_fc[1]*ref_q_imd_down_fc[3] - ref_q_imd_down_fc[0]*ref_q_imd_down_fc[2]);
-	reference_vr_imd_down_fc[1] = 2*(ref_q_imd_down_fc[0]*ref_q_imd_down_fc[1] + ref_q_imd_down_fc[2]*ref_q_imd_down_fc[3]);
-	reference_vr_imd_down_fc[2] = 1 - 2*(ref_q_imd_down_fc[1]*ref_q_imd_down_fc[1] + ref_q_imd_down_fc[2]*ref_q_imd_down_fc[2]);
-	*rol = fast_atan2(2*(ref_q[0]*ref_q[1] + ref_q[2]*ref_q[3]),1 - 2*(ref_q[1]*ref_q[1] + ref_q[2]*ref_q[2])) *57.3f;
-	*pit = asin(2*(ref_q[1]*ref_q[3] - ref_q[0]*ref_q[2])) *57.3f;
-	*yaw = fast_atan2(2*(-ref_q[1]*ref_q[2] - ref_q[0]*ref_q[3]), 2*(ref_q[0]*ref_q[0] + ref_q[1]*ref_q[1]) - 1) *57.3f  ;// 
-}
-
 #include "mpu6050.h"
 #include "i2c_soft.h"
 #include "ms5611.h"
@@ -475,7 +234,7 @@ void rgb565_test(void)
 	//OV5640_Test_Pattern(2);
 	if(en_camera)
 	DCMI_Start(); 		//启动传输
-	TIM3_Int_Init(680-1,8400-1);//10Khz计数,1秒钟中断一次
+	TIM3_Int_Init(10000-1,8400-1);//10Khz计数,1秒钟中断一次
 	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)SendBuff2,SEND_BUF_SIZE2+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
 	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);       
 	en_guass=0;  
@@ -485,14 +244,14 @@ while(1)
 		float dt= Get_Cycle_T(4)/1000000.0f;								//???????????	
     t_mpu+=dt;
     t_focus+=dt;
-    if(t_focus>45&&1){t_focus=0;
+    if(t_focus>30&&1){t_focus=0;
 		OV5640_Focus_Single	();
 		}		
 		if(t_mpu>0.015){
 //		MPU6050_Read();
 //		MPU6050_Data_Prepare( t_mpu );			
    
-	  Send_FLOW();
+	  //Send_FLOW();
 	 if(fc_connect_loss++>33)fc_connect=0;	
 		t_mpu=0;} 														
     
@@ -520,9 +279,9 @@ while(1)
 		}	
 		  
 		static uint32_t lasttime = 0;	
-    float x_rate = -mpu6050_fc.Gyro_deg.x; // change x and y rates
-		float y_rate = -mpu6050_fc.Gyro_deg.y;
-		float z_rate = mpu6050_fc.Gyro_deg.z; // z is correct
+    float x_rate = 0;//-mpu6050_fc.Gyro_deg.x; // change x and y rates
+		float y_rate = 0;//-mpu6050_fc.Gyro_deg.y;
+		float z_rate = 0;//mpu6050_fc.Gyro_deg.z; // z is correct
     float focal_length_px = (3) / (4.0f * 6.0f) * 1000.0f; //original focal lenght: 12mm pixelsize: 6um, binning 4 enabled
     uint32_t deltatime = (micros() - lasttime);
 		flow.integration_time_us=deltatime ;
@@ -531,11 +290,7 @@ while(1)
 		flow.integrated_xgyro=x_rate *flow.integration_time_us/1000000.;
 		flow.integrated_ygyro=y_rate *flow.integration_time_us/1000000.;
 		flow.integrated_zgyro=z_rate *flow.integration_time_us/1000000.;
-    flow_pertreatment_oldx( &flow , 1);
-		if(sonar_fc==0||!fc_connect)
-		ALT_POS_SONAR=ultra.relative_height;
-		flow.h_x_pix=flow_per_out[3]*ALT_POS_SONAR;
-	  flow.h_y_pix=-flow_per_out[2]*ALT_POS_SONAR;
+
     lasttime = micros();
 
 		bmp_rx=0;
@@ -543,28 +298,33 @@ while(1)
  static u16 cnt_up_fig;			
 			
 		  if(en_jpg){
+				#if EN_JPG	
 				DCMI_Stop(); 		//启动传输
 				for(i=0;i<64*64;i++){//IWDG_Feed();			
-				;//RGB565TORGB24(i,GRAY_RGB(image_buffer_8bit_1[i]));
+			
+				RGB565TORGB24(i,GRAY_RGB(image_buffer_8bit_1[i]));
+				
 				}
- 		   // Compression(64,64,jpg_q);//压缩 
+ 		    Compression(64,64,jpg_q);//压缩 
 				DCMI_Start(); 		//启动传输
+				#endif
 				}
 				  static u8 uart_init;
 					if(DMA_GetFlagStatus(DMA1_Stream6,DMA_FLAG_TCIF6)!=RESET||uart_init==0)
 								{ uart_init=1;
 								DMA_ClearFlag(DMA1_Stream6,DMA_FLAG_TCIF6);
 								SendBuff2_cnt=0;	
-
-									if(en_jpg){cnt_up_fig=0;
+                     
+									if(en_jpg){cnt_up_fig=0;	
+								#if EN_JPG	
 								p=(u8*)JPG_enc_buf;
-								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
-								;//SendBuff2[SendBuff2_cnt++]=p[i];
+								for(i=0;i<JUGG_BUF;i++)SendBuff2[SendBuff2_cnt++]=p[i];		//dma传输1次等于4字节,所以乘以4.
+								#endif
 						  	}else{
-							   data_per_uart1(pixel_flow_x_sad*100,pixel_flow_x_sadt*100,pixel_flow_x*0,													 
-								pixel_flow_y_sad*100,pixel_flow_y_sadt*100,pixel_flow_y*0,				//flow.integrated_x*100,1*flow.integrated_xgyro*100,0*flow.h_x_pix*100,															
+							  data_per_uart1(pixel_flow_x_sad*100,pixel_flow_x_sadt*100,pixel_flow_x_klt*100,													 
+								pixel_flow_y_sad*100,pixel_flow_y_sadt*100,pixel_flow_y_klt*100,				//flow.integrated_x*100,1*flow.integrated_xgyro*100,0*flow.h_x_pix*100,															
 								pixel_flow_x*100,pixel_flow_y*100,0*flow.h_y_pix*0,
-						    	Yaw_fc*10,Pit_fc*10,Rol_fc*10,0,0,0,0);			
+						    	0*10,0*10,0*10,0,0,0,0);			
 								}									
 					    USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);  //????1?DMA??     
 							MYDMA_Enable(DMA1_Stream6,SendBuff2_cnt+2);     //????DMA??!	
@@ -589,16 +349,14 @@ int main(void)
 	LED_Init();					//初始化LED 
  	KEY_Init();					//按键初始化 
 	delay_ms(10);
-  MPU6050_Init(20);
-	Ultrasonic_Init();
-	W25QXX_Init();			//W25QXX初始化
-	delay_ms(10);
-	while(W25QXX_ReadID()!=W25Q32&&W25QXX_ReadID()!=W25Q16)	
-	{	
-		delay_ms(200);
-		LED1=!LED1;
-	}
-  READ_PARM(); 
+//	W25QXX_Init();			//W25QXX初始化
+//	delay_ms(10);
+//	while(W25QXX_ReadID()!=W25Q32&&W25QXX_ReadID()!=W25Q16)	
+//	{	
+//		delay_ms(200);
+//		LED1=!LED1;
+//	}
+//  READ_PARM(); 
 
 	while(OV5640_Init())//初始化OV2640
 	{

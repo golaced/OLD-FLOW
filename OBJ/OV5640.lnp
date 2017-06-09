@@ -29,10 +29,14 @@
 "..\obj\i2c_soft.o"
 "..\obj\mymath.o"
 "..\obj\filter.o"
-"..\obj\flash_w25.o"
 "..\obj\flow_s.o"
-"..\obj\ultrasonic.o"
-"..\obj\mpu6050.o"
+"..\obj\dct.o"
+"..\obj\jchuff.o"
+"..\obj\jcapi.o"
+"..\obj\jcint.o"
+"..\obj\jcmarker.o"
+"..\obj\jpg_code.o"
+"..\obj\jutility.o"
 --strict --scatter "..\OBJ\OV5640.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

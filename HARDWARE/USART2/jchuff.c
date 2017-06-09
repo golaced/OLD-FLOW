@@ -12,7 +12,7 @@
                     ¹þ¸¥Âü±àÂë
 *************************************************************************/
 #include "jinclude.h"
-
+#if EN_JPG
 void  jhuff_flush_buffer(jpeg_compress_info *cinfo);
 int bit_num(int a);
 void jhuff_write_bits (jpeg_compress_info *cinfo, UINT32 data, int len);
@@ -172,4 +172,4 @@ void  jhuff_encode_one_block (jpeg_compress_info *cinfo, DCTBLOCK src,
   }
 }
 
-
+#endif
