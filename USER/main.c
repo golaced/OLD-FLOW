@@ -292,6 +292,8 @@ static __align(4) u32 jpeg_buf[jpeg_buf_size];	//JPEG数据缓存buf
 
 uint8_t image_buffer_8bit_2[64*64]={0};
 uint8_t image_buffer_8bit_1[64*64]={0};
+uint8_t image_buffer_8bit_2_t[64*64]={0};
+uint8_t image_buffer_8bit_1_t[64*64]={0};
 volatile u32 jpeg_data_len=0; 			//buf中的JPEG有效数据长度 
 volatile u8 jpeg_data_ok=0;				//JPEG数据采集完成标志 
 										
@@ -505,11 +507,16 @@ while(1)
 		static u8 cnt_flow;
 		if(en_flow)
 		{ 
+		k=0;	
+		for(i=0;i<64;i++)
+			for(j=0;j<64;j++)
+		image_buffer_8bit_2_t[k++]=image_buffer_8bit_2[i+j*64];	
 			
-		flow_q=flow_task(image_buffer_8bit_2, image_buffer_8bit_1,t_flow);
-			
+		flow_q=flow_task(image_buffer_8bit_2, image_buffer_8bit_1,image_buffer_8bit_2_t, image_buffer_8bit_1_t,t_flow);
 		for(i=0;i<64*64;i++)
 		image_buffer_8bit_1[i]=image_buffer_8bit_2[i];	
+		for(i=0;i<64*64;i++)
+		image_buffer_8bit_1_t[i]=image_buffer_8bit_2_t[i];	
 		}	
 		  
 		static uint32_t lasttime = 0;	
@@ -554,9 +561,9 @@ while(1)
 								for(i=0;i<JUGG_BUF;i++)		//dma传输1次等于4字节,所以乘以4.
 								;//SendBuff2[SendBuff2_cnt++]=p[i];
 						  	}else{
-							   data_per_uart1(pixel_flow_x_sad*100,pixel_flow_x_klt*100,pixel_flow_x*100,													 
-								pixel_flow_y_sad*100,pixel_flow_y_klt*100,pixel_flow_y*100,				//flow.integrated_x*100,1*flow.integrated_xgyro*100,0*flow.h_x_pix*100,															
-								flow.integrated_y*100,1*flow.integrated_x*100,0*flow.h_y_pix*100,
+							   data_per_uart1(pixel_flow_x_sad*100,pixel_flow_x_sadt*100,pixel_flow_x*0,													 
+								pixel_flow_y_sad*100,pixel_flow_y_sadt*100,pixel_flow_y*0,				//flow.integrated_x*100,1*flow.integrated_xgyro*100,0*flow.h_x_pix*100,															
+								pixel_flow_x*100,pixel_flow_y*100,0*flow.h_y_pix*0,
 						    	Yaw_fc*10,Pit_fc*10,Rol_fc*10,0,0,0,0);			
 								}									
 					    USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);  //????1?DMA??     
