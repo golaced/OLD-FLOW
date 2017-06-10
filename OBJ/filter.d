@@ -35,5 +35,7 @@
 ..\obj\filter.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\filter.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\filter.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\filter.o: ..\HARDWARE\USART2\jinclude.h
+..\obj\filter.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\obj\filter.o: ..\HARDWARE\LED\filter.h
 ..\obj\filter.o: ..\HARDWARE\LED\mymath.h

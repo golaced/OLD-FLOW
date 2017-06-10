@@ -37,6 +37,7 @@
 "..\obj\jcmarker.o"
 "..\obj\jpg_code.o"
 "..\obj\jutility.o"
+"..\obj\malloc.o"
 --strict --scatter "..\OBJ\OV5640.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

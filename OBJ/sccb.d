@@ -35,5 +35,7 @@
 ..\obj\sccb.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\sccb.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\sccb.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\sccb.o: ..\HARDWARE\USART2\jinclude.h
+..\obj\sccb.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\obj\sccb.o: ..\HARDWARE\OV5640\sccb.h
 ..\obj\sccb.o: ..\SYSTEM\delay\delay.h

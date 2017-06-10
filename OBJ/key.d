@@ -36,4 +36,6 @@
 ..\obj\key.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\key.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\key.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\key.o: ..\HARDWARE\USART2\jinclude.h
+..\obj\key.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\obj\key.o: ..\SYSTEM\delay\delay.h

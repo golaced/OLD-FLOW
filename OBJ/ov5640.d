@@ -35,6 +35,8 @@
 ..\obj\ov5640.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\ov5640.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\ov5640.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\ov5640.o: ..\HARDWARE\USART2\jinclude.h
+..\obj\ov5640.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\obj\ov5640.o: ..\HARDWARE\OV5640\ov5640.h
 ..\obj\ov5640.o: ..\HARDWARE\OV5640\sccb.h
 ..\obj\ov5640.o: ..\HARDWARE\OV5640\ov5640cfg.h
@@ -42,4 +44,3 @@
 ..\obj\ov5640.o: ..\HARDWARE\TIMER\timer.h
 ..\obj\ov5640.o: ..\SYSTEM\delay\delay.h
 ..\obj\ov5640.o: ..\SYSTEM\usart\usart.h
-..\obj\ov5640.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

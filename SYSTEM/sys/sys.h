@@ -16,8 +16,12 @@
 //修改说明
 //无
 ////////////////////////////////////////////////////////////////////////////////// 
-
+#include "jinclude.h"
+#if EN_JPG
 #define Frame_size 2
+#else
+#define Frame_size 2.8
+#endif
 #define USE_FPS60 1
 extern double X_kf_baro[3], P_kf_baro[9];
 extern float K_acc_flt,ALT_POS_SONAR;

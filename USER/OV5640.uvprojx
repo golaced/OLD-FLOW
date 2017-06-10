@@ -597,6 +597,11 @@
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\USART2\jutility.c</FilePath>
             </File>
+            <File>
+              <FileName>malloc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TIMER\malloc.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

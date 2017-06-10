@@ -36,9 +36,10 @@
 ..\obj\timer.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\timer.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\timer.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\timer.o: ..\HARDWARE\USART2\jinclude.h
+..\obj\timer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\obj\timer.o: ..\HARDWARE\LED\led.h
 ..\obj\timer.o: ..\SYSTEM\usart\usart.h
-..\obj\timer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\obj\timer.o: ..\HARDWARE\LED\mpu6050.h
 ..\obj\timer.o: ..\SYSTEM\delay\delay.h
 ..\obj\timer.o: ..\HARDWARE\LED\imu.h

@@ -14,22 +14,14 @@
 #include "dma.h"	
 #include "imu.h"
 #include "sys.h"
-#include "mpu6050.h"
-#include "ak8975.h"
 #include "mymath.h"
 #include "filter.h"
-#include "ultrasonic.h"
 #include "iwdg.h"
-#include "mpu6050.h"
-#include "i2c_soft.h"
-#include "ms5611.h"
-#include "ak8975.h"
-#include "ultrasonic.h"
-#include "bmp.h"
 #include "imu.h"
 #include "flash_w25.h" 
 
-
+u8 MAX_BRIGHT=250;
+u16 max_num=3;
 #define W (int)(64*Frame_size)
 #define H W
 #define FULL_IMAGE_SIZE (H*W)
@@ -60,8 +52,7 @@ u8 get_one;
 u16 off_pix1=0;
 //处理JPEG数据
 //当采集完一帧JPEG数据后,调用此函数,切换JPEG BUF.开始下一帧采集.
-u8 MAX_BRIGHT=250;
-u16 max_num=3;
+
 float fHistogram[256],fHistogram1[256];
 unsigned char lut[256];
 
@@ -142,6 +133,55 @@ void gaussianFilter(unsigned char *I_image,unsigned char *O_image, int width, in
         }
     }
 }
+
+void HistNormolize(unsigned char *pImg, unsigned char *pNormImg,int width,int height)
+{  int hist[256];
+ float  fpHist[256];
+ float eqHistTemp[256];
+ int eqHist[256];
+ int size = height *width;
+ int i ,j;
+ memset(&hist,0x00,sizeof(int)*256);
+ memset(&fpHist,0x00,sizeof(float)*256);
+ memset(&eqHistTemp,0x00,sizeof(float)*256);
+ for (i = 0;i < height; i++) //?????????
+ {
+  for (j = 0; j < width; j++)
+  {
+   unsigned char GrayIndex = pImg[i*height+j];
+   hist[GrayIndex] ++ ;
+  }
+ }
+ for (i = 0; i< 256; i++)   // ????????
+ {
+  fpHist[i] = (float)hist[i] / (float)size;
+ }
+ for ( i = 1; i< 256; i++)   // ?????????
+ {
+  if (i == 0)
+  {
+   eqHistTemp[i] = fpHist[i];
+  }
+  else
+  {
+   eqHistTemp[i] = eqHistTemp[i-1] + fpHist[i];
+  }
+ }
+ //??????,?????????????
+ for (i = 0; i< 256; i++)
+ {
+  eqHist[i] = (int)(255.0 * eqHistTemp[i] + 0.5);
+ }
+ for (i = 0;i < height; i++) //?????? ???
+ {
+  for (j = 0; j < width; j++)
+  {
+   unsigned char GrayIndex = pImg[i*height+j];
+   pNormImg[i*height+j] = eqHist[GrayIndex]>>max_num;
+  }
+ }
+}
+
 void jpeg_data_process(void)
 {u16 x,y,color,i,j,k,l;
 uint8_t image_buffer_8bit_2_t[64*64]={0};	
@@ -162,7 +202,8 @@ uint8_t image_buffer_8bit_2_t[64*64]={0};
 			
 		x=y=j=i=k=l=0;	  			
 		if(MAX_BRIGHT!=0)	
-		gray_balance(image_buffer_8bit_2_t,image_buffer_8bit_2);	
+		//gray_balance(image_buffer_8bit_2_t,image_buffer_8bit_2);	
+		HistNormolize(image_buffer_8bit_2_t,image_buffer_8bit_2,64,64);	
 		else	
 	  for(i=0;i<64*64;i++)
 			 image_buffer_8bit_2[i]=image_buffer_8bit_2_t[i];	
@@ -202,7 +243,7 @@ float K_spd_flow=0.44;
 float K_spd_flow=1;
 #endif
 u8 Shape=33;
-u8 Contract=3;
+u8 Contract=6;
 u8 Effect=0;
 void rgb565_test(void)
 { 
@@ -214,8 +255,9 @@ void rgb565_test(void)
 	OV5640_RGB565_Mode();	//RGB565模式 
 	OV5640_Focus_Init();	
 	OV5640_Light_Mode(0);	//自动模式
-	OV5640_Color_Saturation(3);//色彩饱和度0
-	OV5640_Brightness(4);	//亮度0
+	OV5640_Color_Saturation(6);//色彩饱和度0
+	OV5640_Brightness(8);	//亮度0
+	OV5640_Exposure(6);
 //0:正常    
 //1,冷色
 //2,暖色   
@@ -237,14 +279,15 @@ void rgb565_test(void)
 	TIM3_Int_Init(10000-1,8400-1);//10Khz计数,1秒钟中断一次
 	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)SendBuff2,SEND_BUF_SIZE2+2,1);//DMA2,STEAM7,CH4,?????1,????SendBuff,???:SEND_BUF_SIZE.
 	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);       
-	en_guass=0;  
-	en_hist_filter=1; 
+	//en_guass=0;  
+	//en_hist_filter=1; 
 while(1)
 	{ static float t_mpu,t_focus;
 		float dt= Get_Cycle_T(4)/1000000.0f;								//???????????	
     t_mpu+=dt;
     t_focus+=dt;
-    if(t_focus>30&&1){t_focus=0;
+		
+    if(t_focus>45&&1){t_focus=0;
 		OV5640_Focus_Single	();
 		}		
 		if(t_mpu>0.015){

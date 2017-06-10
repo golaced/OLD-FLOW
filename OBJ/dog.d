@@ -36,3 +36,5 @@
 ..\obj\dog.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\dog.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\dog.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\dog.o: ..\HARDWARE\USART2\jinclude.h
+..\obj\dog.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

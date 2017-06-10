@@ -205,9 +205,9 @@ void simple_3d_trans(_xyz_f_t *ref, _xyz_f_t *in, _xyz_f_t *out) //小范围内�
 // GX3 = (1 - A) / (1 + A)
 
 ///////////////////////////////////////
-
+#define K_TAU 2
 float ACC_HIGHPASS_TAU        = 4.0;
-float ACC_LOWPASS_TAU        = 0.03;
+float ACC_LOWPASS_TAU        = 0.03*K_TAU;
 float ACC_LOWPASS_SAMPLE_TIME =0.02f;
 float ACC_LOWPASS_A        ;
 float ACC_LOWPASS_GX1      ;
@@ -221,7 +221,7 @@ float BARO_LOWPASS_GX1      ;
 float BARO_LOWPASS_GX2      ;
 float BARO_LOWPASS_GX3      ;
 
-float FLOW_LOWPASS_TAU        = 0.03f;
+float FLOW_LOWPASS_TAU        = 0.03f*K_TAU;
 float FLOW_LOWPASS_SAMPLE_TIME =0.02f;
 float FLOW_LOWPASS_A        ;
 float FLOW_LOWPASS_GX1      ;

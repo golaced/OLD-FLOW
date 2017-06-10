@@ -35,6 +35,8 @@
 ..\obj\dcmi.o: ..\FWLIB\inc\stm32f4xx_dac.h
 ..\obj\dcmi.o: ..\FWLIB\inc\stm32f4xx_dcmi.h
 ..\obj\dcmi.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
+..\obj\dcmi.o: ..\HARDWARE\USART2\jinclude.h
+..\obj\dcmi.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\obj\dcmi.o: ..\HARDWARE\DCMI\dcmi.h
 ..\obj\dcmi.o: ..\HARDWARE\LCD\lcd.h
 ..\obj\dcmi.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
